@@ -1,0 +1,14 @@
+<!DOCTYPE html><html lang="en"><head><title>templates/helpers/criteria</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../../"><meta name="groc-document-path" content="templates/helpers/criteria"><meta name="groc-project-path" content="lib/templates/helpers/criteria.coffee"><meta name="groc-github-url" content="https://github.com/KleeGroup/focus"><link rel="stylesheet" type="text/css" media="all" href="../../assets/style.css"><script type="text/javascript" src="../../assets/behavior.js"></script><body><div id="meta"><div class="file-path"><a href="https://github.com/KleeGroup/focus/blob/master/lib/templates/helpers/criteria.coffee">lib/templates/helpers/criteria.coffee</a></div></div><div id="document"><div class="segment"><div class="comments "><div class="wrapper"><p>  Helper pour uniformiser l&#39;utilisation des formulaires.
+  Exemple: {{#criteria}}{{#form}} {{input_for &quot;firstName&quot;}} {{/form}}{{/criteria}}</p></div></div><div class="code"><div class="wrapper">Handlebars.registerHelper <span class="hljs-string">'criteria'</span>, <span class="hljs-function"><span class="hljs-params">(title, options)</span>-&gt;</span>
+  options = options <span class="hljs-keyword">or</span> {}
+  <span class="hljs-keyword">if</span> _.isObject(title)
+      options = title 
+      title = <span class="hljs-literal">undefined</span>
+    title =  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> title? <span class="hljs-keyword">then</span> <span class="hljs-string">""</span> <span class="hljs-keyword">else</span> i18n.t(title)
+  html = <span class="hljs-string">"
+      &lt;div class='criteria'&gt;
+        &lt;h2&gt;<span class="hljs-subst">#{title}</span>&lt;/h2&gt;
+        <span class="hljs-subst">#{options.fn(@)}</span>
+      &lt;/div&gt;
+  "</span>
+  <span class="hljs-keyword">return</span> html</div></div></div></div></body></html>

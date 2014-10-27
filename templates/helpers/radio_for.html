@@ -1,0 +1,109 @@
+<!DOCTYPE html><html lang="en"><head><title>templates/helpers/radio_for</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../../"><meta name="groc-document-path" content="templates/helpers/radio_for"><meta name="groc-project-path" content="lib/templates/helpers/radio_for.coffee"><meta name="groc-github-url" content="https://github.com/KleeGroup/focus"><link rel="stylesheet" type="text/css" media="all" href="../../assets/style.css"><script type="text/javascript" src="../../assets/behavior.js"></script><body><div id="meta"><div class="file-path"><a href="https://github.com/KleeGroup/focus/blob/master/lib/templates/helpers/radio_for.coffee">lib/templates/helpers/radio_for.coffee</a></div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper">Handlebars.registerHelper <span class="hljs-string">"radio_for"</span>, <span class="hljs-function"><span class="hljs-params">(property, options)</span> -&gt;</span>
+  options = options <span class="hljs-keyword">or</span> {}
+  <span class="hljs-comment">#Initialize the variables which are options</span>
+  html = <span class="hljs-literal">undefined</span>
+  translationRoot = <span class="hljs-literal">undefined</span>
+  dataType = <span class="hljs-literal">undefined</span>
+  <span class="hljs-comment">#Read all the options if they exists</span>
+  opt = options.hash <span class="hljs-keyword">or</span> {}
+  metadata = Fmk.Helpers.metadataBuilder.getMetadataForAttribute(<span class="hljs-keyword">this</span>,property)
+  <span class="hljs-comment">#console.log "metadata",metadata</span>
+  domain = Fmk.Helpers.metadataBuilder.getDomains()[metadata.domain] <span class="hljs-keyword">or</span> {}
+  <span class="hljs-comment">#possible values for the radio group</span>
+  possibleValues = [] ;
+  isDisplayRequired = <span class="hljs-literal">false</span>
+  <span class="hljs-function"><span class="hljs-title">isRequired</span> = <span class="hljs-params">()</span>=&gt;</span> 
+    isDisplayRequired = <span class="hljs-literal">false</span>
+    <span class="hljs-keyword">if</span> opt.isRequired?
+      isDisplayRequired = opt.isRequired
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> metadata.required?
+      isDisplayRequired = metadata.required
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">if</span> isDisplayRequired <span class="hljs-keyword">then</span> <span class="hljs-string">""</span> <span class="hljs-keyword">else</span> generateRadioButton(i18n.t(<span class="hljs-string">'search.labels.all'</span>), <span class="hljs-string">"null"</span>, defaultValue == <span class="hljs-string">""</span>)
+
+  translationRoot = opt.translationRoot <span class="hljs-keyword">or</span> <span class="hljs-literal">undefined</span>
+  dataType = opt.dataType <span class="hljs-keyword">or</span> domain.type <span class="hljs-keyword">or</span> <span class="hljs-string">"text"</span>
+  <span class="hljs-comment">#generate possible values or return classic input_for</span>
+  <span class="hljs-keyword">switch</span> dataType
+    <span class="hljs-keyword">when</span> <span class="hljs-string">"boolean"</span> <span class="hljs-keyword">then</span> possibleValues = [<span class="hljs-literal">true</span>, <span class="hljs-literal">false</span>]
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">return</span> <span class="hljs-string">"Type "</span> + dataType + <span class="hljs-string">" not supported by helper radio_for"</span>
+  defaultValue = <span class="hljs-keyword">if</span> opt.defaultValue != <span class="hljs-literal">undefined</span> <span class="hljs-keyword">then</span> opt.defaultValue <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  readonly = opt.readonly <span class="hljs-keyword">or</span> <span class="hljs-literal">false</span>
+  readonly = <span class="hljs-keyword">if</span> readonly <span class="hljs-keyword">then</span> <span class="hljs-string">"readonly"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  disabled = opt.disabled <span class="hljs-keyword">or</span> <span class="hljs-literal">false</span>
+  disabled = <span class="hljs-keyword">if</span> disabled <span class="hljs-keyword">then</span> <span class="hljs-string">"disabled"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  inputAttributes= opt.inputAttributes <span class="hljs-keyword">or</span> <span class="hljs-string">""</span>
+  <span class="hljs-comment">#Add bootstrap-switch css to checkbox input.</span>
+  containerAttribs = opt.containerAttribs <span class="hljs-keyword">or</span> <span class="hljs-string">""</span>
+  containerCss = opt.containerCss <span class="hljs-keyword">or</span> <span class="hljs-string">""</span>
+  labelSizeValue = <span class="hljs-keyword">if</span> opt.isNoLabel <span class="hljs-keyword">then</span> <span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> opt.labelSize <span class="hljs-keyword">then</span> opt.labelSize <span class="hljs-keyword">else</span> <span class="hljs-number">3</span>
+  labelSize = <span class="hljs-string">"col-sm-<span class="hljs-subst">#{labelSizeValue}</span> col-md-<span class="hljs-subst">#{labelSizeValue}</span> col-lg-<span class="hljs-subst">#{labelSizeValue}</span>"</span>
+  col = <span class="hljs-keyword">if</span> opt.col? <span class="hljs-keyword">then</span> Handlebars.helpers.col.call(<span class="hljs-keyword">this</span>, opt.col) <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  radioSizeValue = opt.radioSize <span class="hljs-keyword">or</span> <span class="hljs-number">4</span>
+  radioSize = <span class="hljs-string">"col-sm-<span class="hljs-subst">#{radioSizeValue}</span> col-md-<span class="hljs-subst">#{radioSizeValue}</span> col-lg-<span class="hljs-subst">#{radioSizeValue}</span>"</span>
+  <span class="hljs-comment">#Deal with the inputSize</span>
+  <span class="hljs-function"><span class="hljs-title">inputSize</span> = <span class="hljs-params">()</span>=&gt;</span>
+      inputSizeValue = <span class="hljs-number">12</span> - labelSizeValue
+      inputSize = opt.inputSize <span class="hljs-keyword">or</span> <span class="hljs-string">"col-sm-<span class="hljs-subst">#{inputSizeValue}</span> col-md-<span class="hljs-subst">#{inputSizeValue}</span> col-lg-<span class="hljs-subst">#{inputSizeValue}</span>"</span>
+  <span class="hljs-comment">#Deal with the label</span>
+  <span class="hljs-function"><span class="hljs-title">label</span> = <span class="hljs-params">()</span>=&gt;</span>
+    <span class="hljs-keyword">if</span> opt.isNoLabel?
+      <span class="hljs-keyword">return</span> <span class="hljs-string">""</span>
+    <span class="hljs-keyword">else</span>
+      <span class="hljs-keyword">return</span> <span class="hljs-string">"&lt;label class='control-label <span class="hljs-subst">#{labelSize}</span>' for='<span class="hljs-subst">#{property}</span>'&gt;<span class="hljs-subst">#{translationKey()}</span>&lt;/label&gt;"</span>
+  <span class="hljs-comment">#Get the value of the transalated label.</span>
+  <span class="hljs-function"><span class="hljs-title">translationKey</span> =<span class="hljs-params">()</span>=&gt;</span>
+    translation = opt.translationKey <span class="hljs-keyword">or</span>   metadata.label <span class="hljs-keyword">or</span> (<span class="hljs-string">"<span class="hljs-subst">#{<span class="hljs-keyword">this</span>[<span class="hljs-string">'modelName'</span>]}</span>.<span class="hljs-subst">#{property}</span>"</span> <span class="hljs-keyword">if</span> <span class="hljs-keyword">this</span>[<span class="hljs-string">'modelName'</span>]?) <span class="hljs-keyword">or</span> <span class="hljs-string">""</span>
+    <span class="hljs-keyword">if</span> translationRoot?
+      translation = ((<span class="hljs-keyword">if</span> (translationRoot?) <span class="hljs-keyword">and</span> <span class="hljs-keyword">typeof</span> translationRoot <span class="hljs-keyword">is</span> <span class="hljs-string">"string"</span> <span class="hljs-keyword">then</span> translationRoot + <span class="hljs-string">"."</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>)) + property
+    
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">if</span>(translation <span class="hljs-keyword">is</span> <span class="hljs-string">""</span>) <span class="hljs-keyword">then</span> <span class="hljs-string">""</span> <span class="hljs-keyword">else</span> i18n.t(translation)
+   
+    <span class="hljs-comment">#if not opt.isNoLabel? then "&lt;label class='control-label #{labelSize}' for='#{property}'&gt; #{translationKey} &lt;/label&gt;" else ""</span>
+  <span class="hljs-comment">#By default there is a placeholder or if the preperty is true.</span>
+  placeholder = <span class="hljs-keyword">if</span> (!opt.placeholder? <span class="hljs-keyword">and</span> opt.isNoLabel) <span class="hljs-keyword">or</span> opt.placeholder <span class="hljs-keyword">then</span> <span class="hljs-string">"placeholder='<span class="hljs-subst">#{translationKey()}</span>'"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  <span class="hljs-comment">#console.log "placeholder", placeholder, (!opt.isNoLabel? or !opt.isNolabel)</span>
+  
+  <span class="hljs-comment">#Checked by default</span>
+  <span class="hljs-function"><span class="hljs-title">checked</span> = <span class="hljs-params">(value, isDefault)</span> =&gt;</span> 
+    isChecked =  <span class="hljs-keyword">this</span>[property] <span class="hljs-keyword">is</span> value <span class="hljs-keyword">or</span> ((<span class="hljs-keyword">not</span> <span class="hljs-keyword">this</span>[property]?) <span class="hljs-keyword">and</span> isDefault) <span class="hljs-keyword">or</span> <span class="hljs-literal">false</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">if</span> isChecked <span class="hljs-keyword">then</span> <span class="hljs-string">"checked='checked'"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  
+  <span class="hljs-comment">#Basic layout for radio button</span>
+  <span class="hljs-function"><span class="hljs-title">generateRadioButton</span> = <span class="hljs-params">(label, value, isDefault)</span> =&gt;</span> 
+    <span class="hljs-keyword">return</span> <span class="hljs-string">"
+    &lt;div class='<span class="hljs-subst">#{radioSize}</span>'&gt;
+         &lt;div class='input-group'&gt;
+             &lt;span class='input-group-addon'&gt;
+                &lt;input id='<span class="hljs-subst">#{property + value}</span>' name='<span class="hljs-subst">#{property}</span>' data-name='<span class="hljs-subst">#{property}</span>' type=radio value='<span class="hljs-subst">#{value}</span>' <span class="hljs-subst">#{checked(value,isDefault)}</span> <span class="hljs-subst">#{inputAttributes}</span> <span class="hljs-subst">#{placeholder}</span> <span class="hljs-subst">#{readonly}</span> <span class="hljs-subst">#{disabled}</span>/&gt;      
+             &lt;/span&gt;
+             &lt;label for='<span class="hljs-subst">#{property + value}</span>' class='form-control'&gt;
+               <span class="hljs-subst">#{label}</span>
+             &lt;/label&gt;
+          &lt;/div&gt;
+      &lt;/div&gt;"</span>
+  
+  <span class="hljs-comment">#Deal with error</span>
+  <span class="hljs-comment">#Initialize the errors variables =&gt; Is there an error, if yes what is the message.</span>
+  error = <span class="hljs-string">""</span>
+  error = <span class="hljs-string">"has-error"</span> <span class="hljs-keyword">if</span> <span class="hljs-property">@errors</span>? <span class="hljs-keyword">and</span> <span class="hljs-property">@errors</span>[property]?
+  errorValue = <span class="hljs-keyword">if</span> <span class="hljs-property">@errors</span>? <span class="hljs-keyword">and</span> <span class="hljs-property">@errors</span>[property]? <span class="hljs-keyword">then</span> i18n.t(<span class="hljs-property">@errors</span>[property]) <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  <span class="hljs-function"><span class="hljs-title">errorSize</span> = <span class="hljs-params">()</span>=&gt;</span>
+    errorLength = <span class="hljs-number">12</span> - labelSizeValue
+    offsetError = labelSizeValue
+    <span class="hljs-keyword">return</span> <span class="hljs-string">"col-sm-<span class="hljs-subst">#{errorLength}</span> col-md-<span class="hljs-subst">#{errorLength}</span> col-lg-<span class="hljs-subst">#{errorLength}</span> col-sm-offset-<span class="hljs-subst">#{offsetError}</span> col-md-offset-<span class="hljs-subst">#{offsetError}</span> col-lg-offset-<span class="hljs-subst">#{offsetError}</span>"</span>
+  <span class="hljs-comment">#create the radios</span>
+  radios = isRequired()
+  radios += generateRadioButton(i18n.t(<span class="hljs-string">'search.labels.'</span>+value), value, value == defaultValue) <span class="hljs-keyword">for</span> value <span class="hljs-keyword">in</span> possibleValues
+  
+  <span class="hljs-function"><span class="hljs-title">errors</span> = <span class="hljs-params">()</span>=&gt;</span>
+    <span class="hljs-keyword">if</span> error == <span class="hljs-string">"has-error"</span> <span class="hljs-keyword">then</span> <span class="hljs-string">"&lt;span class='<span class="hljs-subst">#{error}</span> <span class="hljs-subst">#{errorSize()}</span> help-inline pull-left' style='color:#b94a48'&gt; <span class="hljs-subst">#{errorValue }</span> &lt;/span&gt;"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  html = <span class="hljs-string">"
+          &lt;div class='form-group <span class="hljs-subst">#{error}</span> <span class="hljs-subst">#{col}</span>'&gt;
+            <span class="hljs-subst">#{label()}</span>
+            &lt;div class='<span class="hljs-subst">#{inputSize()}</span> <span class="hljs-subst">#{containerCss}</span>' <span class="hljs-subst">#{containerAttribs}</span>&gt;
+              <span class="hljs-subst">#{radios}</span>
+              &lt;/div&gt;
+            <span class="hljs-subst">#{errors()}</span>
+          &lt;/div&gt;
+        "</span>
+  <span class="hljs-keyword">new</span> Handlebars.SafeString(html)</div></div></div></div></body></html>

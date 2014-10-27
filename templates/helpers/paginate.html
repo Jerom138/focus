@@ -1,0 +1,63 @@
+<!DOCTYPE html><html lang="en"><head><title>templates/helpers/paginate</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../../"><meta name="groc-document-path" content="templates/helpers/paginate"><meta name="groc-project-path" content="lib/templates/helpers/paginate.coffee"><meta name="groc-github-url" content="https://github.com/KleeGroup/focus"><link rel="stylesheet" type="text/css" media="all" href="../../assets/style.css"><script type="text/javascript" src="../../assets/behavior.js"></script><body><div id="meta"><div class="file-path"><a href="https://github.com/KleeGroup/focus/blob/master/lib/templates/helpers/paginate.coffee">lib/templates/helpers/paginate.coffee</a></div></div><div id="document"><div class="segment"><div class="comments "><div class="wrapper"><p>display pagination on table 
+consume an object in the this which is : 
+<code>{currentPage: currentPage, firstPage: firstPage, totalPages: totalPages, perPage: perPage, totalRecords: totalRecords}</code></p></div></div><div class="code"><div class="wrapper">Handlebars.registerHelper <span class="hljs-string">"paginate"</span>, <span class="hljs-function"><span class="hljs-params">(property, options)</span>-&gt;</span>
+  options = options <span class="hljs-keyword">or</span> {}
+  options = options.hash <span class="hljs-keyword">or</span> {}
+  <span class="hljs-keyword">return</span> <span class="hljs-string">""</span> <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-property">@collection</span>?
+  <span class="hljs-keyword">return</span> <span class="hljs-string">""</span> <span class="hljs-keyword">if</span> <span class="hljs-property">@collection</span>? <span class="hljs-keyword">and</span> <span class="hljs-property">@collection</span>.length <span class="hljs-keyword">is</span> <span class="hljs-number">0</span>
+  currentPage = <span class="hljs-keyword">this</span>.currentPage
+  firstPage = <span class="hljs-keyword">this</span>.firstPage <span class="hljs-keyword">or</span> <span class="hljs-number">1</span>
+  endPage = <span class="hljs-keyword">this</span>.totalPages <span class="hljs-keyword">or</span> <span class="hljs-number">0</span>
+
+  nbPrint = <span class="hljs-number">4</span>;
+  firstPagePrint = Math.max(firstPage, currentPage - nbPrint)
+  lastPagePrint = Math.min(endPage, currentPage + nbPrint)
+  nbPagePrint = lastPagePrint - firstPagePrint
+  <span class="hljs-keyword">if</span> nbPagePrint &lt; nbPrint * <span class="hljs-number">2</span>
+    <span class="hljs-keyword">if</span> endPage - lastPagePrint &gt; nbPrint
+      lastPagePrint += nbPrint * <span class="hljs-number">2</span> - nbPagePrint
+    <span class="hljs-keyword">else</span>
+      firstPagePrint -= nbPrint * <span class="hljs-number">2</span> - nbPagePrint
+  
+  firstPagePrint = Math.max(firstPagePrint, <span class="hljs-number">1</span>);
+   
+  perPage = <span class="hljs-keyword">this</span>.perPage <span class="hljs-keyword">or</span> <span class="hljs-number">10</span>
+  totalRecords = <span class="hljs-keyword">this</span>.totalRecords
+  <span class="hljs-function"><span class="hljs-title">generateLeftArrow</span> = <span class="hljs-params">()</span>-&gt;</span>
+    className = <span class="hljs-keyword">if</span> currentPage <span class="hljs-keyword">is</span> firstPage <span class="hljs-keyword">then</span> <span class="hljs-string">"disabled"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-string">"&lt;li class='<span class="hljs-subst">#{className}</span>'&gt;&lt;a href='#' data-bypass data-page='<span class="hljs-subst">#{firstPage}</span>'&gt;&amp;laquo;&lt;/a&gt;&lt;/li&gt;"</span>
+  <span class="hljs-function"><span class="hljs-title">generatePageNumber</span>= <span class="hljs-params">()</span>-&gt;</span>
+    html = <span class="hljs-string">""</span>
+    (html+= <span class="hljs-string">"&lt;li class='<span class="hljs-subst">#{<span class="hljs-keyword">if</span> i <span class="hljs-keyword">is</span> currentPage <span class="hljs-keyword">then</span> <span class="hljs-string">'active'</span> <span class="hljs-keyword">else</span> <span class="hljs-string">''</span>}</span>'&gt;&lt;a href='#' data-bypass data-page='<span class="hljs-subst">#{i}</span>'&gt;<span class="hljs-subst">#{i}</span>&lt;/a&gt;&lt;/li&gt;"</span>) <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [firstPagePrint..lastPagePrint]
+    <span class="hljs-keyword">return</span> html
+  <span class="hljs-function"><span class="hljs-title">generateRigthArrow</span> = <span class="hljs-params">()</span>-&gt;</span>
+    className = <span class="hljs-keyword">if</span> currentPage <span class="hljs-keyword">is</span> endPage <span class="hljs-keyword">then</span> <span class="hljs-string">"disabled"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-string">"&lt;li class='<span class="hljs-subst">#{className}</span>'&gt;&lt;a href='#' data-bypass  data-page='<span class="hljs-subst">#{endPage}</span>'&gt;&amp;raquo;&lt;/a&gt;&lt;/li&gt;"</span>
+  <span class="hljs-function"><span class="hljs-title">generatePagination</span> = -&gt;</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-string">""</span> <span class="hljs-keyword">if</span> totalRecords &lt;= perPage
+    <span class="hljs-keyword">return</span> <span class="hljs-string">"<span class="hljs-subst">#{generateLeftArrow()}</span><span class="hljs-subst">#{generatePageNumber()}</span><span class="hljs-subst">#{generateRigthArrow()}</span>"</span>
+  <span class="hljs-function"><span class="hljs-title">generatePageFilter</span> = <span class="hljs-params">()</span>-&gt;</span>
+    pageString = i18n.t(<span class="hljs-string">"application.pages"</span>)
+    <span class="hljs-function"><span class="hljs-title">generateOptions</span> = <span class="hljs-params">()</span>-&gt;</span>
+      html = <span class="hljs-string">""</span>
+      <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">1.</span><span class="hljs-number">.4</span>]
+        html += <span class="hljs-string">"&lt;option value='<span class="hljs-subst">#{<span class="hljs-number">5</span>*i}</span>' <span class="hljs-subst">#{<span class="hljs-keyword">if</span> <span class="hljs-number">5</span>*i <span class="hljs-keyword">is</span> perPage <span class="hljs-keyword">then</span> <span class="hljs-string">'selected'</span>}</span>&gt;<span class="hljs-subst">#{<span class="hljs-number">5</span>*i}</span> <span class="hljs-subst">#{pageString}</span>&lt;/option&gt;"</span>
+      <span class="hljs-keyword">return</span> html
+      
+    <span class="hljs-keyword">return</span> <span class="hljs-string">"&lt;select class='form-control pageFilter'&gt;
+              <span class="hljs-subst">#{generateOptions()}</span> 
+            &lt;/select&gt;"</span>
+  <span class="hljs-function"><span class="hljs-title">generateTotal</span> = <span class="hljs-params">()</span>-&gt;</span>
+    resultString = i18n.t(<span class="hljs-string">'search.result'</span>)
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">if</span> options.showResultNumber <span class="hljs-keyword">then</span> <span class="hljs-string">"&lt;div class='badgeResult'&gt;<span class="hljs-subst">#{resultString}</span> &lt;span class='badge'&gt;<span class="hljs-subst">#{totalRecords}</span>&lt;/span&gt;&lt;/div&gt;"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+    
+  html = <span class="hljs-string">"&lt;div class='col-md-8'&gt;
+            &lt;ul class='pagination'&gt;<span class="hljs-subst">#{generatePagination()}</span>&lt;/ul&gt;
+          &lt;/div&gt;
+          &lt;div class='col-md-2 pagination'&gt;
+            <span class="hljs-subst">#{generateTotal()}</span>
+          &lt;/div&gt;
+          &lt;div class='col-md-2 pagination'&gt;
+            <span class="hljs-subst">#{generatePageFilter()}</span>
+          &lt;/div&gt;"</span>
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Handlebars.SafeString(html)</div></div></div></div></body></html>

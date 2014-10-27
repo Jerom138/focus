@@ -1,0 +1,80 @@
+<!DOCTYPE html><html lang="en"><head><title>models/collection</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../"><meta name="groc-document-path" content="models/collection"><meta name="groc-project-path" content="lib/models/collection.coffee"><meta name="groc-github-url" content="https://github.com/KleeGroup/focus"><link rel="stylesheet" type="text/css" media="all" href="../assets/style.css"><script type="text/javascript" src="../assets/behavior.js"></script><body><div id="meta"><div class="file-path"><a href="https://github.com/KleeGroup/focus/blob/master/lib/models/collection.coffee">lib/models/collection.coffee</a></div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-function"><span class="hljs-params">((NS) -&gt;
+  <span class="hljs-string">"use strict"</span></span></span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Filename: models/model.coffee</p></div></div><div class="code"><div class="wrapper">  NS = NS <span class="hljs-keyword">or</span> {}
+  isInBrowser = <span class="hljs-keyword">typeof</span> <span class="hljs-built_in">module</span> <span class="hljs-keyword">is</span> <span class="hljs-string">'undefined'</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">typeof</span> <span class="hljs-built_in">window</span> <span class="hljs-keyword">isnt</span> <span class="hljs-string">'undefined'</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Base class for all models. Define all transverses methods on the model.</p></div></div><div class="code"><div class="wrapper">  <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Collection</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Backbone</span>.<span class="hljs-title">Collection</span></span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>The model name can be define.</p></div></div><div class="code"><div class="wrapper">    <span class="hljs-attribute">modelName</span>: <span class="hljs-literal">undefined</span>
+
+    
+    <span class="hljs-attribute">addModel</span>: <span class="hljs-function"><span class="hljs-params">(model)</span>-&gt;</span>
+      <span class="hljs-keyword">if</span> model.isNew()
+        <span class="hljs-property">@changes</span>.creates[model.cid] = model.toSaveJSON()
+      <span class="hljs-keyword">else</span> <span class="hljs-property">@updateModel</span>(model)  
+    <span class="hljs-attribute">updateModel</span>: <span class="hljs-function"><span class="hljs-params">(model)</span>-&gt;</span>
+      (<span class="hljs-keyword">delete</span> <span class="hljs-property">@changes</span>.deletes[model.cid]) <span class="hljs-keyword">if</span> <span class="hljs-property">@changes</span>.deletes[model.cid]?
+      <span class="hljs-property">@changes</span>.updates[model.cid] = model.toSaveJSON()
+    <span class="hljs-attribute">deleteModel</span>:<span class="hljs-function"><span class="hljs-params">(model)</span> -&gt;</span>
+      <span class="hljs-keyword">if</span> <span class="hljs-property">@changes</span>.creates[model.cid]?
+        <span class="hljs-keyword">delete</span> <span class="hljs-property">@changes</span>.creates[model.cid]
+      <span class="hljs-keyword">if</span> <span class="hljs-property">@changes</span>.updates[model.cid]?
+        <span class="hljs-property">@changes</span>.deletes[model.cid] = model.toSaveJSON()
+        <span class="hljs-keyword">delete</span> <span class="hljs-property">@changes</span>.updates[model.cid]
+    <span class="hljs-attribute">resetModels</span>:<span class="hljs-function"><span class="hljs-params">(models)</span> -&gt;</span>
+      <span class="hljs-comment">#Reset the changes.</span>
+      <span class="hljs-property">@changes</span> = {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>The newly created models.</p></div></div><div class="code"><div class="wrapper">        <span class="hljs-attribute">creates</span>: {}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>The updated models.</p></div></div><div class="code"><div class="wrapper">        <span class="hljs-attribute">updates</span>: {}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>The deleted models.</p></div></div><div class="code"><div class="wrapper">        <span class="hljs-attribute">deletes</span>: {}
+      }</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Call add model foreach model.</p></div></div><div class="code"><div class="wrapper">      models.forEach(<span class="hljs-property">@addModel</span>, @)
+
+    <span class="hljs-attribute">initialize</span>: <span class="hljs-function"><span class="hljs-params">(options)</span>-&gt;</span>
+      options = options <span class="hljs-keyword">or</span> {}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Changes inside the collection.</p></div></div><div class="code"><div class="wrapper">      <span class="hljs-property">@changes</span> = {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>The newly created models.</p></div></div><div class="code"><div class="wrapper">        <span class="hljs-attribute">creates</span>: {}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>The updated models.</p></div></div><div class="code"><div class="wrapper">        <span class="hljs-attribute">updates</span>: {}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>The deleted models.</p></div></div><div class="code"><div class="wrapper">        <span class="hljs-attribute">deletes</span>: {}
+      }</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Bind models events on order to track changes.</p></div></div><div class="code"><div class="wrapper">      <span class="hljs-property">@on</span><span class="hljs-function"><span class="hljs-params">(<span class="hljs-string">'add'</span>,(model)=&gt; <span class="hljs-property">@addModel</span>(model))</span>
+      @<span class="hljs-title">on</span><span class="hljs-params">(<span class="hljs-string">'remove'</span>, (model)=&gt; <span class="hljs-property">@deleteModel</span>(model))</span>
+      @<span class="hljs-title">on</span><span class="hljs-params">(<span class="hljs-string">'change'</span>, (model)=&gt; <span class="hljs-property">@addModel</span>(model))</span>
+      @<span class="hljs-title">on</span><span class="hljs-params">(<span class="hljs-string">'reset'</span>, (models)=&gt; <span class="hljs-property">@resetModels</span>(models))</span></span></div></div></div><div class="segment"><div class="comments doc-section"><div class="wrapper"><p><span class='doc-section-header'> resetModels To json function.</span></p>
+<p>Add the collection elements if they are .</p></div></div><div class="code"><div class="wrapper">    <span class="hljs-attribute">toJSON</span>:<span class="hljs-function"> -&gt;</span>
+      jsonModel = <span class="hljs-keyword">super</span>()
+      jsonModel.modelName =  <span class="hljs-property">@modelName</span> <span class="hljs-keyword">or</span> <span class="hljs-keyword">this</span>.get(<span class="hljs-string">'modelName'</span>)
+      <span class="hljs-keyword">return</span> jsonModel
+      </div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Return a json to Save constructed with the changes object.</p></div></div><div class="code"><div class="wrapper">    <span class="hljs-attribute">toSaveJSON</span>:<span class="hljs-function"><span class="hljs-params">(propertyPrefix)</span> -&gt;</span>
+      propertyPrefix = propertyPrefix <span class="hljs-keyword">or</span> <span class="hljs-string">"coll"</span>
+      creates = <span class="hljs-string">"<span class="hljs-subst">#{propertyPrefix}</span>Creates"</span>
+      updates = <span class="hljs-string">"<span class="hljs-subst">#{propertyPrefix}</span>Updates"</span>
+      deletes = <span class="hljs-string">"<span class="hljs-subst">#{propertyPrefix}</span>Deletes"</span>
+      labels = {};
+      labels[creates] = <span class="hljs-property">@changes</span>.creates <span class="hljs-comment">#_.map(@changes.creates, (value, key) -&gt; return value);</span>
+      labels[updates] = <span class="hljs-property">@changes</span>.updates <span class="hljs-comment">#_.map(@changes.updates, (value, key) -&gt; return value);</span>
+      labels[deletes] = <span class="hljs-property">@changes</span>.deletes <span class="hljs-comment"># _.map(@changes.deletes, (value, key) -&gt; return value);</span>
+      <span class="hljs-keyword">return</span> labels
+    <span class="hljs-comment">#Save the pervious collection values in order to restore it.</span>
+    <span class="hljs-attribute">savePrevious</span>:<span class="hljs-function"> -&gt;</span>
+      <span class="hljs-property">@previousCollectionValues</span> = <span class="hljs-property">@toJSON</span>()</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Restore the previous attributes in the model.</p></div></div><div class="code"><div class="wrapper">    <span class="hljs-attribute">restorePrevious</span>: <span class="hljs-function"><span class="hljs-params">(options)</span>-&gt;</span>
+      options = options <span class="hljs-keyword">or</span> {}
+      options.silent = options.isSilent <span class="hljs-keyword">or</span> <span class="hljs-literal">false</span>
+      <span class="hljs-property">@reset</span>(<span class="hljs-property">@previousCollectionValues</span>, options)</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Tells if the previous model is different from the current.</p></div></div><div class="code"><div class="wrapper">    <span class="hljs-attribute">isDifferent</span>:<span class="hljs-function"> -&gt;</span>
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">not</span> _.isEqual <span class="hljs-property">@previousCollectionValues</span>, <span class="hljs-property">@toJSON</span>()</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>  Set errors on a collection element.</p></div></div><div class="code"><div class="wrapper">    <span class="hljs-attribute">setErrors</span>:<span class="hljs-function"><span class="hljs-params">(errors, options)</span>-&gt;</span>
+      <span class="hljs-keyword">if</span> _.isArray(errors)
+        <span class="hljs-property">@setErrorsFromArray</span>(errors, options) 
+      <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> _.isObject(errors)
+        <span class="hljs-property">@setErrorsFromObject</span>(errors, options) </div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Set the errors on the collection from an array of model.</p></div></div><div class="code"><div class="wrapper">    <span class="hljs-attribute">setErrorsFromArray</span>:<span class="hljs-function"><span class="hljs-params">(errors, options)</span>-&gt;</span>
+      <span class="hljs-keyword">for</span> error <span class="hljs-keyword">in</span> errors
+        <span class="hljs-built_in">console</span>.warn(<span class="hljs-string">'invalid error'</span>, error) <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> error.index? <span class="hljs-keyword">and</span> <span class="hljs-keyword">typeof</span> error.index <span class="hljs-keyword">isnt</span> <span class="hljs-string">"number"</span> 
+        <span class="hljs-built_in">console</span>.warn(<span class="hljs-string">'invalid error'</span>, error) <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> error.errors? <span class="hljs-keyword">and</span> <span class="hljs-keyword">typeof</span> error.errors <span class="hljs-keyword">isnt</span> <span class="hljs-string">"object"</span>
+        
+        <span class="hljs-comment">#For the model at the given position in the collection:</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Set the error depending on its index.</p></div></div><div class="code"><div class="wrapper">        <span class="hljs-property">@at</span>(error.index).set({
+            <span class="hljs-attribute">errors</span>: error.errors
+        }, options)
+    <span class="hljs-attribute">setErrorsFromObject</span>:<span class="hljs-function"><span class="hljs-params">(errors, options)</span>-&gt;</span>
+      <span class="hljs-keyword">for</span> err <span class="hljs-keyword">of</span> errors
+        <span class="hljs-built_in">console</span>.warn(<span class="hljs-string">'invalid error'</span>, err) <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> _.isString(err)
+        <span class="hljs-property">@get</span>(err).set({
+            <span class="hljs-attribute">errors</span>: errors[err]
+        }, options)</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Unset errors.</p></div></div><div class="code"><div class="wrapper">    <span class="hljs-attribute">unsetErrors</span>: <span class="hljs-function"><span class="hljs-params">(options)</span> -&gt;</span>
+      <span class="hljs-property">@forEach</span><span class="hljs-function"><span class="hljs-params">((mdl)-&gt; mdl.unsetErrors(options))</span>
+    <span class="hljs-title">jsonFromSaveJson</span>:<span class="hljs-params">(saveJSON)</span>-&gt;</span>
+      changes = []
+      _.each<span class="hljs-function"><span class="hljs-params">(saveJSON.creates, (elt)-&gt;changes.push(elt))</span>
+      <span class="hljs-title">_</span>.<span class="hljs-title">each</span><span class="hljs-params">(saveJSON.updates, (elt)-&gt;changes.push(elt))</span>
+      <span class="hljs-title">return</span> <span class="hljs-title">changes</span>;
+      
+  <span class="hljs-title">if</span> <span class="hljs-title">isInBrowser</span>
+    <span class="hljs-title">NS</span>.<span class="hljs-title">Models</span> = <span class="hljs-title">NS</span>.<span class="hljs-title">Models</span> <span class="hljs-title">or</span> {}
+    <span class="hljs-title">NS</span>.<span class="hljs-title">Models</span>.<span class="hljs-title">Collection</span> = <span class="hljs-title">Collection</span>
+  <span class="hljs-title">else</span>
+    <span class="hljs-title">module</span>.<span class="hljs-title">exports</span> = <span class="hljs-title">Collection</span>
+)<span class="hljs-params">(<span class="hljs-keyword">if</span> <span class="hljs-keyword">typeof</span> <span class="hljs-built_in">module</span> <span class="hljs-keyword">is</span> <span class="hljs-string">'undefined'</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">typeof</span> <span class="hljs-built_in">window</span> <span class="hljs-keyword">isnt</span> <span class="hljs-string">'undefined'</span> <span class="hljs-keyword">then</span> <span class="hljs-built_in">window</span>.Fmk <span class="hljs-keyword">else</span> <span class="hljs-built_in">module</span>.<span class="hljs-built_in">exports</span>)</span></span></div></div></div></div></body></html>

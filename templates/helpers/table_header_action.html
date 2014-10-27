@@ -1,0 +1,23 @@
+<!DOCTYPE html><html lang="en"><head><title>templates/helpers/table_header_action</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../../"><meta name="groc-document-path" content="templates/helpers/table_header_action"><meta name="groc-project-path" content="lib/templates/helpers/table_header_action.coffee"><meta name="groc-github-url" content="https://github.com/KleeGroup/focus"><link rel="stylesheet" type="text/css" media="all" href="../../assets/style.css"><script type="text/javascript" src="../../assets/behavior.js"></script><body><div id="meta"><div class="file-path"><a href="https://github.com/KleeGroup/focus/blob/master/lib/templates/helpers/table_header_action.coffee">lib/templates/helpers/table_header_action.coffee</a></div></div><div id="document"><div class="segment"><div class="comments "><div class="wrapper"><p><code>{totalRecords: totalRecords}</code></p></div></div><div class="code"><div class="wrapper">Handlebars.registerHelper <span class="hljs-string">"tableHeaderAction"</span>, <span class="hljs-function"><span class="hljs-params">(options)</span>-&gt;</span>
+  options = options <span class="hljs-keyword">or</span> {}
+  options = options.hash <span class="hljs-keyword">or</span> {}
+  totalRecords = <span class="hljs-keyword">this</span>.totalRecords <span class="hljs-keyword">or</span> <span class="hljs-number">0</span>
+  resultString = i18n.t(options.resultLabel <span class="hljs-keyword">or</span> <span class="hljs-string">'search.result'</span>)
+  <span class="hljs-function"><span class="hljs-title">exportButton</span> = -&gt;</span>
+    <span class="hljs-keyword">if</span> options.exportUrl? &amp;&amp; totalRecords &gt; <span class="hljs-number">0</span>
+      <span class="hljs-keyword">return</span> <span class="hljs-string">"
+        &lt;div class='pull-right export'&gt;
+          &lt;button   data-bypass class='btn btnExport'&gt;&lt;i class='fa fa-table'&gt;&lt;/i&gt;<span class="hljs-subst">#{i18n.t(<span class="hljs-string">'search.export'</span>)}</span>&lt;/button&gt;
+          &lt;a href='<span class="hljs-subst">#{options.exportUrl}</span>' data-bypass class='btn hidden btnExport'&gt;&lt;i class='fa fa-table'&gt;&lt;/i&gt; <span class="hljs-subst">#{i18n.t(<span class="hljs-string">'search.export'</span>)}</span>&lt;/a&gt;
+        &lt;/div&gt;
+        "</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-string">""</span>
+  <span class="hljs-function"><span class="hljs-title">generateTotal</span> = <span class="hljs-params">()</span>-&gt;</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-string">"&lt;span class='badge'&gt;<span class="hljs-subst">#{totalRecords}</span>&lt;/span&gt; <span class="hljs-subst">#{resultString}</span>"</span>
+  html = <span class="hljs-string">"&lt;div class='tableAction'&gt;
+            &lt;div class='pull-left'&gt;
+                <span class="hljs-subst">#{generateTotal()}</span>
+            &lt;/div&gt;
+            <span class="hljs-subst">#{exportButton()}</span>
+          &lt;/div&gt;"</span>
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Handlebars.SafeString(html)</div></div></div></div></body></html>

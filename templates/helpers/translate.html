@@ -1,0 +1,16 @@
+<!DOCTYPE html><html lang="en"><head><title>templates/helpers/translate</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../../"><meta name="groc-document-path" content="templates/helpers/translate"><meta name="groc-project-path" content="lib/templates/helpers/translate.coffee"><meta name="groc-github-url" content="https://github.com/KleeGroup/focus"><link rel="stylesheet" type="text/css" media="all" href="../../assets/style.css"><script type="text/javascript" src="../../assets/behavior.js"></script><body><div id="meta"><div class="file-path"><a href="https://github.com/KleeGroup/focus/blob/master/lib/templates/helpers/translate.coffee">lib/templates/helpers/translate.coffee</a></div></div><div id="document"><div class="segment"><div class="comments "><div class="wrapper"><p>Filename: lib/templates/view_helper/translate.coffee</p></div></div><div class="code"><div class="wrapper"><span class="hljs-comment">#Use this helper in order to use the translation system in the view. It has a dependency on i18next.js.</span>
+<span class="hljs-comment">#use in order to use the translation system in the view.</span>
+Handlebars.registerHelper <span class="hljs-string">"t"</span>, <span class="hljs-function"><span class="hljs-params">(i18n_key, options)</span> -&gt;</span>
+  opt = options.hash <span class="hljs-keyword">or</span> {}
+  suffix =  opt.suffix <span class="hljs-keyword">or</span> <span class="hljs-string">""</span>
+  prefix = opt.prefix <span class="hljs-keyword">or</span> <span class="hljs-string">""</span>
+  maxLength = opt.max
+  (i18n_key = <span class="hljs-keyword">this</span>[i18n_key]) <span class="hljs-keyword">if</span> opt.keyInContext <span class="hljs-keyword">is</span> <span class="hljs-literal">true</span>
+
+  params = <span class="hljs-keyword">if</span> opt.params? <span class="hljs-keyword">then</span> opt.params.split(<span class="hljs-string">','</span>) <span class="hljs-keyword">else</span> <span class="hljs-literal">undefined</span>
+  <span class="hljs-comment">#console.log(opt.params, _.pick.apply(@, params));</span>
+  params = <span class="hljs-keyword">if</span> params? <span class="hljs-keyword">then</span> _.pick.apply(@, params) <span class="hljs-keyword">else</span> <span class="hljs-literal">undefined</span>
+  result = i18n.t(<span class="hljs-string">"<span class="hljs-subst">#{prefix}</span><span class="hljs-subst">#{i18n_key}</span><span class="hljs-subst">#{suffix}</span>"</span>, params)
+  <span class="hljs-keyword">if</span> maxLength? <span class="hljs-keyword">and</span> maxLength &lt; result.length <span class="hljs-keyword">then</span> result = <span class="hljs-string">"<span class="hljs-subst">#{result.slice(<span class="hljs-number">0</span>,+maxLength)}</span>..."</span>
+  <span class="hljs-keyword">new</span> Handlebars.SafeString(result)</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Example call: (inside an hbs file)
+    {{t &quot;contact.firstName&quot;}}</p></div></div></div></div></body></html>

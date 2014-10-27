@@ -1,0 +1,19 @@
+<!DOCTYPE html><html lang="en"><head><title>templates/helpers/progress</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../../"><meta name="groc-document-path" content="templates/helpers/progress"><meta name="groc-project-path" content="lib/templates/helpers/progress.coffee"><meta name="groc-github-url" content="https://github.com/KleeGroup/focus"><link rel="stylesheet" type="text/css" media="all" href="../../assets/style.css"><script type="text/javascript" src="../../assets/behavior.js"></script><body><div id="meta"><div class="file-path"><a href="https://github.com/KleeGroup/focus/blob/master/lib/templates/helpers/progress.coffee">lib/templates/helpers/progress.coffee</a></div></div><div id="document"><div class="segment"><div class="comments "><div class="wrapper"><p>Helper in order to display a progress bar.</p></div></div><div class="code"><div class="wrapper">Handlebars.registerHelper <span class="hljs-string">"progress"</span>, <span class="hljs-function"><span class="hljs-params">(property, options)</span>-&gt;</span>
+  <span class="hljs-comment">#Add each element of the property</span>
+  <span class="hljs-function"><span class="hljs-title">addElements</span> = <span class="hljs-params">(elements)</span>-&gt;</span>
+    html = <span class="hljs-string">""</span>
+    sum = <span class="hljs-number">0</span>
+    elements.forEach<span class="hljs-function"><span class="hljs-params">((elt)-&gt;
+      <span class="hljs-keyword">if</span>(<span class="hljs-keyword">not</span> _.isEmpty(elt))
+        sum+= elt.value 
+    )</span>
+    <span class="hljs-title">elements</span>.<span class="hljs-title">forEach</span><span class="hljs-params">((elt)-&gt;
+      <span class="hljs-keyword">if</span>(<span class="hljs-keyword">not</span> _.isEmpty(elt))
+        html += <span class="hljs-string">"&lt;div class='progress-bar progress-bar-<span class="hljs-subst">#{elt.type}</span>' style='width: <span class="hljs-subst">#{Math.floor(elt.value*<span class="hljs-number">100</span>/sum)}</span>%'&gt;
+          <span class="hljs-subst">#{elt.label}</span>
+        &lt;/div&gt;"</span>
+    )</span>
+    #<span class="hljs-title">console</span>.<span class="hljs-title">log</span> "<span class="hljs-title">progress</span>", <span class="hljs-title">html</span>
+    <span class="hljs-title">return</span> <span class="hljs-title">html</span>
+  <span class="hljs-title">return</span> <span class="hljs-title">new</span> <span class="hljs-title">Handlebars</span>.<span class="hljs-title">SafeString</span><span class="hljs-params">(<span class="hljs-string">"&lt;div class='progress'&gt;<span class="hljs-subst">#{addElements(@[property])}</span>&lt;/div&gt;"</span>)</span>
+</span></div></div></div></div></body></html>

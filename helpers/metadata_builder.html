@@ -1,0 +1,142 @@
+<!DOCTYPE html><html lang="en"><head><title>helpers/metadata_builder</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../"><meta name="groc-document-path" content="helpers/metadata_builder"><meta name="groc-project-path" content="lib/helpers/metadata_builder.coffee"><meta name="groc-github-url" content="https://github.com/KleeGroup/focus"><link rel="stylesheet" type="text/css" media="all" href="../assets/style.css"><script type="text/javascript" src="../assets/behavior.js"></script><body><div id="meta"><div class="file-path"><a href="https://github.com/KleeGroup/focus/blob/master/lib/helpers/metadata_builder.coffee">lib/helpers/metadata_builder.coffee</a></div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-string">"use strict"</span>
+<span class="hljs-function"><span class="hljs-params">((NS) -&gt;</span></span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Filename: helpers/metadata_builder.coffee</p></div></div><div class="code"><div class="wrapper">  NS = NS <span class="hljs-keyword">or</span> {}
+  isInBrowser = <span class="hljs-keyword">typeof</span> <span class="hljs-built_in">module</span> <span class="hljs-keyword">is</span> <span class="hljs-string">'undefined'</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">typeof</span> <span class="hljs-built_in">window</span> <span class="hljs-keyword">isnt</span> <span class="hljs-string">'undefined'</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Exceptions</p></div></div><div class="code"><div class="wrapper">  ArgumentNullException = <span class="hljs-keyword">if</span> isInBrowser <span class="hljs-keyword">then</span> NS.Helpers.Exceptions.ArgumentNullException <span class="hljs-keyword">else</span> <span class="hljs-built_in">require</span>(<span class="hljs-string">"./custom_exception"</span>).ArgumentNullException
+  proxyValidationContainer = {}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Get the domains definition.</p></div></div><div class="code"><div class="wrapper">  <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MetadataBuilder</span></span>
+    
+    <span class="hljs-comment">#Initialize the dependencies from the project: the domains and the metadatas.</span>
+    <span class="hljs-attribute">initialize</span>: <span class="hljs-function"><span class="hljs-params">(options, cb)</span> -&gt;</span>
+      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> ArgumentNullException(<span class="hljs-string">'The metadata builder needs options with domains and metadatas.'</span>) <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> options?
+      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> ArgumentNullException(<span class="hljs-string">'The metadata builder needs domains in options.'</span>) <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> options.domains?
+      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> ArgumentNullException(<span class="hljs-string">'The metadata builder needs metadatas in options.'</span>) <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> options.metadatas?
+      <span class="hljs-property">@domains</span> = options.domains
+      <span class="hljs-property">@metadatas</span> = options.metadatas
+      <span class="hljs-property">@isLog</span> = options.isLog <span class="hljs-comment">#Define if there is warn or not for metadata properties.</span>
+      cb(<span class="hljs-property">@domains</span>, <span class="hljs-property">@metadatas</span>) <span class="hljs-keyword">if</span> cb?
+      </div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Get the domains as they were initialized in the builder (if initialized).</p></div></div><div class="code"><div class="wrapper">    <span class="hljs-attribute">getDomains</span>:<span class="hljs-function"> -&gt;</span>
+      <span class="hljs-keyword">return</span> _.clone(<span class="hljs-property">@domains</span>)
+      </div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Get the validation attributes from the domain.</p></div></div><div class="code"><div class="wrapper">    <span class="hljs-attribute">getDomainsValidationAttrs</span>: <span class="hljs-function"><span class="hljs-params">(model)</span> -&gt;</span>
+      <span class="hljs-comment">#console.log('called')</span>
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> ArgumentNullException(<span class="hljs-string">'The model should exists and have a metadatas property.'</span>) <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> model?
+      <span class="hljs-comment">#Get the metadatas from the model.</span>
+      metadatas = <span class="hljs-property">@getMetadatas</span>(model)
+      <span class="hljs-comment">#Container for the validation rules of the domain of each property.</span>
+      valDomAttrs = {}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Lopping through all attributes of th model in order to build their validators.</p></div></div><div class="code"><div class="wrapper">      <span class="hljs-keyword">for</span> attr <span class="hljs-keyword">of</span> metadatas</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Construct the metadata object</p></div></div><div class="code"><div class="wrapper">        md = metadatas[attr] <span class="hljs-keyword">or</span> {}
+        <span class="hljs-keyword">if</span> (md.isValidationOff? <span class="hljs-keyword">and</span> md.isValidationOff <span class="hljs-keyword">is</span> <span class="hljs-literal">false</span>) <span class="hljs-keyword">or</span> (<span class="hljs-keyword">not</span> md.isValidationOff?)
+          <span class="hljs-comment">###_.extend(metadata, md.metadata) if md.metadata?
+          (metadata.domain = md.domain) if md.domain?
+          (metadata.required = md.required) if md.required?</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><h1 id="container-for-the-validators">Container for the validators.</h1>
+<p>validators = []</p>
+<h1 id="if-the-required-filed-is-set-add-a-validator">If the required filed is set, add a validator</h1>
+<p>validators.push({&quot;type&quot;: &quot;required&quot;,&quot;value&quot;: true}) if md.required is true
+Extend the validators
+(validators = <em>.union(validators, @domains[md.domain].validation)) if md.domain? and @domains[md.domain]?
+Set the validators inide the container associated with the field.
+valDomAttrs[attr] = validators
+      return valDomAttrs
+Get all the metadatas from the model.
+    getMetadatas: (model) -&gt;
+      throw new ArgumentNullException(&quot;In order to get metadatas , you must provide a model.&quot;) if not model?
+Construct the metadatas obtained with the model name.
+      entityMetadatas = @constructEntityMetaDatas(model)
+      metadatas = </em>.clone(entityMetadatas)
+If the models has metadatas the metadatas given by its definitions will extend them.
+      metadatasAttrs = <em>.keys(metadatas)
+      if model.metadatas?
+        metadatasAttrs = </em>.union(metadatasAttrs, <em>.keys(model.metadatas))
+      for mdlMetadataAttr in metadatasAttrs
+        entityAttrMetadata = entityMetadatas[mdlMetadataAttr] # Get the introspected metadatas.
+        mdlMetadata = if model.metadatas? and model.metadatas[mdlMetadataAttr]? then model.metadatas[mdlMetadataAttr] else undefined
+        metadata = {} # Create a container for the metadatas.
+        </em>.extend(metadata,  entityAttrMetadata) # Inject validationinto metadata the entitydefinitions metadata attributes.</p>
+<pre><code>    #console.log(&quot;metadata&quot;,metadata,  metadata.domain, &quot;domains&quot;, _.omit(@domains[metadata.domain]))
+    _.extend(metadata, _.omit(@domains[metadata.domain], &#39;validation&#39;)) #override the metadata with the metadata inside the domain style, validators,....
+    if mdlMetadata?</code></pre>
+<p><em>.extend(metadata, mdlMetadata.metadata)  if mdlMetadata.metadata?
+</em>.extend(metadata, _.omit(@domains[metadata.domain], &#39;validation&#39;)) #override the metadata with the metadata inside the domain style, validators,....
+Extend the &quot;overriden&quot; metadatas
+Property that can be overriden: required, label, domain, isValidationOff
+overridenProperties = {}</p>
+<h1 id="consolelog-39mdlmetadatamdlmetadata39-mdlmetadata">console.log &#39;mdlMetadatamdlMetadata&#39;, mdlMetadata</h1>
+<p>if mdlMetadata.domain?
+  <em>.extend(overridenProperties, {domain: mdlMetadata.domain}) # Change the domain.
+  </em>.extend(overridenProperties, <em>.omit(@domains[mdlMetadata.domain], &#39;validation&#39;)) # Change the metadatas of the domain.
+</em>.extend(overridenProperties, {required: mdlMetadata.required}) if mdlMetadata.required?
+<em>.extend(overridenProperties, {label: mdlMetadata.label}) if mdlMetadata.label?
+</em>.extend(overridenProperties, {isValidationOff: mdlMetadata.isValidationOff}) if mdlMetadata.isValidationOff? #Turn off the model validations.
+<em>.extend(overridenProperties, {style: mdlMetadata.style}) if mdlMetadata.style?
+</em>.extend(overridenProperties, {decorator: mdlMetadata.decorator}) if mdlMetadata.decorator?
+<em>.extend(overridenProperties, {symbol: mdlMetadata.symbol}) if mdlMetadata.symbol?
+</em>.extend(overridenProperties, {decoratorOptions: mdlMetadata.decoratorOptions}) if mdlMetadata.decoratorOptions?
+<em>.extend(overridenProperties, {idAttribute: mdlMetadata.idAttribute}) if mdlMetadata.idAttribute?
+If at least one property has been defined.
+</em>.extend(metadata, overridenProperties) if not _.isEmpty(overridenProperties)</p>
+<pre><code>    #Update the global metadatas&lt;
+    #console.log &quot;metadata&quot;, metadata
+    metadatas[mdlMetadataAttr] = metadata
+  return metadatas
+
+#Get the attributes for one property of a metadata.
+getMetadataForAttribute: (model, attribute) -&gt;
+  throw new ArgumentNullException(&quot;In order to get metadatas for an attribute of a model , you must provide a model.&quot;) if not model?
+  throw new ArgumentNullException(&quot;In order to get metadatas for an attribute of a model , you must provide an attribute.&quot;) if not attribute?
+  entityAttrMetadata = @constructEntityMetaDatas(model)[attribute]
+  mdlMetadata = if model.metadatas? and model.metadatas[attribute]? then model.metadatas[attribute] else undefined
+  metadata = {} # Create a container for the metadatas.
+  _.extend(metadata,  entityAttrMetadata) # Inject validationinto metadata the entitydefinitions metadata attributes.
+  #console.log(&quot;metadata&quot;,metadata,  metadata.domain, &quot;domains&quot;, _.omit(@domains[metadata.domain]))
+  _.extend(metadata, _.omit(@domains[metadata.domain], &#39;validation&#39;)) #override the metadata with the metadata inside the domain style, validators,....
+  if mdlMetadata?
+    _.extend(metadata, mdlMetadata.metadata)  if mdlMetadata.metadata?
+    _.extend(metadata, _.omit(@domains[metadata.domain], &#39;validation&#39;)) #override the metadata with the metadata inside the domain style, validators,....</code></pre>
+<p>Extend the &quot;overriden&quot; metadatas
+Property that can be overriden: required, label, domain, isValidationOff
+        overridenProperties = {}</p>
+<pre><code>    #console.log &#39;mdlMetadatamdlMetadata&#39;, mdlMetadata
+    if mdlMetadata.domain?</code></pre>
+<p><em>.extend(overridenProperties, {domain: mdlMetadata.domain}) # Change the domain.
+</em>.extend(overridenProperties, <em>.omit(@domains[mdlMetadata.domain], &#39;validation&#39;)) # Change the metadatas of the domain.
+        </em>.extend(overridenProperties, {required: mdlMetadata.required}) if mdlMetadata.required?
+        <em>.extend(overridenProperties, {label: mdlMetadata.label}) if mdlMetadata.label?
+        </em>.extend(overridenProperties, {isValidationOff: mdlMetadata.isValidationOff}) if mdlMetadata.isValidationOff? #Turn off the model validations.
+        <em>.extend(overridenProperties, {style: mdlMetadata.style}) if mdlMetadata.style?
+        </em>.extend(overridenProperties, {decorator: mdlMetadata.decorator}) if mdlMetadata.decorator?
+        <em>.extend(overridenProperties, {symbol: mdlMetadata.symbol}) if mdlMetadata.symbol?
+        </em>.extend(overridenProperties, {decoratorOptions: mdlMetadata.decoratorOptions}) if mdlMetadata.decoratorOptions?
+If at least one property has been defined.
+        <em>.extend(metadata, overridenProperties) if not </em>.isEmpty(overridenProperties)
+      return metadata
+    constructEntityMetaDatas: (model) -&gt;
+      @metadatas = @metadatas || {} # If no metadatas have been defined.
+TODO: pbn =&gt; Use a flatten function in order to flatten @metadatas and be ablt to access it without any problem.
+      if model.modelName?
+        mdName = model.modelName.split(&#39;.&#39;)
+        if mdName.length is 1
+if @metadatas[model.modelName]?
+  return @metadatas[model.modelName]
+else
+  if @isLog
+    console.warn(&quot;The metadatas does not have properties for model &#39;#{model.modelName}&#39;.&quot;)
+  return {}
+        else
+if @metadatas[mdName[0]]? and @metadatas[mdName[0]][mdName[1]]?
+  return @metadatas[mdName[0]][mdName[1]]
+else
+  if @isLog
+    console.warn(&quot;The metadatas does not have properties for model &#39;#{model.modelName}&#39;.&quot;)
+  return {}
+      else
+        throw new ArgumentNullException(&#39;The model should have a model name in order to build its metadatas&#39;)</p>
+<pre><code>proxyDomainValidationAttrs: (model) -&gt;
+  return getDomainsValidationAttrs(model)
+  return proxyValidationContainer[model.modelName] if(model.modelName? and proxyValidationContainer[model.modelName]?)
+  if model.modelName?
+    return proxyValidationContainer[model.modelName] = getDomainsValidationAttrs(model)
+  else
+    return getDomainsValidationAttrs(model)</code></pre>
+<p>  if isInBrowser
+    NS.Helpers = NS.Helpers or {}
+    NS.Helpers.MetadataBuilder = MetadataBuilder
+    NS.Helpers.metadataBuilder = new MetadataBuilder()
+  else
+    module.exports = {MetadataBuilder: MetadataBuilder, metadataBuilder: new MetadataBuilder()}
+)(if typeof module is &#39;undefined&#39; and typeof window isnt &#39;undefined&#39; then window.Fmk else module.exports)</p></div></div></div></div></body></html>

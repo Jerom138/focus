@@ -1,0 +1,9 @@
+<!DOCTYPE html><html lang="en"><head><title>templates/helpers/result_container</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../../"><meta name="groc-document-path" content="templates/helpers/result_container"><meta name="groc-project-path" content="lib/templates/helpers/result_container.coffee"><meta name="groc-github-url" content="https://github.com/KleeGroup/focus"><link rel="stylesheet" type="text/css" media="all" href="../../assets/style.css"><script type="text/javascript" src="../../assets/behavior.js"></script><body><div id="meta"><div class="file-path"><a href="https://github.com/KleeGroup/focus/blob/master/lib/templates/helpers/result_container.coffee">lib/templates/helpers/result_container.coffee</a></div></div><div id="document"><div class="segment"><div class="comments "><div class="wrapper"><p>  Create the default container for search results.
+  Example:
+    {{result_container}}</p></div></div><div class="code"><div class="wrapper">Handlebars.registerHelper <span class="hljs-string">"result_container"</span>, <span class="hljs-function"><span class="hljs-params">(i18n_key, options)</span>-&gt;</span>
+  options = options <span class="hljs-keyword">or</span> {}
+  opt = options.hash <span class="hljs-keyword">or</span> {} 
+  <span class="hljs-comment">#Default width</span>
+  width = opt.width <span class="hljs-keyword">or</span> <span class="hljs-number">12</span>
+  html = <span class="hljs-string">"&lt;div id='results' class='<span class="hljs-subst">#{Handlebars.helpers.col.call(<span class="hljs-keyword">this</span>, width)}</span>}'&gt;&lt;/div&gt;"</span>
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Handlebars.SafeString(html)</div></div></div></div></body></html>

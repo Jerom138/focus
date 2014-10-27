@@ -1,0 +1,19 @@
+<!DOCTYPE html><html lang="en"><head><title>templates/helpers/panel</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../../"><meta name="groc-document-path" content="templates/helpers/panel"><meta name="groc-project-path" content="lib/templates/helpers/panel.coffee"><meta name="groc-github-url" content="https://github.com/KleeGroup/focus"><link rel="stylesheet" type="text/css" media="all" href="../../assets/style.css"><script type="text/javascript" src="../../assets/behavior.js"></script><body><div id="meta"><div class="file-path"><a href="https://github.com/KleeGroup/focus/blob/master/lib/templates/helpers/panel.coffee">lib/templates/helpers/panel.coffee</a></div></div><div id="document"><div class="segment"><div class="comments "><div class="wrapper"><p>  Helper pour uniformiser l&#39;utilisation des panel.
+  Exemple: {{#panel}} {{{#form}} {{/form}} {{/panel}}
+  Exemple: {{#panel &quot;titlekey&quot;}} {{{#form}} {{/form}} {{/panel}}</p></div></div><div class="code"><div class="wrapper">Handlebars.registerHelper <span class="hljs-string">'panel'</span>, <span class="hljs-function"><span class="hljs-params">(title, options)</span>-&gt;</span>
+    opt = (options <span class="hljs-keyword">or</span> {}).hash <span class="hljs-keyword">or</span> {}
+    <span class="hljs-keyword">if</span> _.isObject(title)
+      options = title 
+      title = <span class="hljs-literal">undefined</span>
+    <span class="hljs-function"><span class="hljs-title">editButton</span> = -&gt;</span>
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">if</span> opt.edit <span class="hljs-keyword">then</span> Handlebars.helpers.button_edit.call(@, {<span class="hljs-attribute">hash</span>: {<span class="hljs-attribute">icon</span>: <span class="hljs-string">"pencil"</span>}}) <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+    <span class="hljs-function"><span class="hljs-title">saveButton</span> = -&gt;</span>
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">if</span> opt.save <span class="hljs-keyword">then</span> Handlebars.helpers.button_save.call(@, <span class="hljs-literal">undefined</span>, {<span class="hljs-attribute">hash</span>: {<span class="hljs-attribute">icon</span>: <span class="hljs-string">"save"</span>}}) <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+    <span class="hljs-function"><span class="hljs-title">cancelButton</span> = -&gt;</span>
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">if</span> opt.save <span class="hljs-keyword">then</span> Handlebars.helpers.button_cancel.call(@, {<span class="hljs-attribute">hash</span>: {<span class="hljs-attribute">icon</span>: <span class="hljs-string">"undo"</span>}}) <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+    title =  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> title? <span class="hljs-keyword">then</span> <span class="hljs-string">""</span> <span class="hljs-keyword">else</span> i18n.t(title)
+    html = <span class="hljs-string">"&lt;div class='panel panel-default'&gt;
+          &lt;div class='panel-heading'&gt;<span class="hljs-subst">#{title}</span> <span class="hljs-subst">#{editButton()}</span> <span class="hljs-subst">#{saveButton()}</span> <span class="hljs-subst">#{cancelButton()}</span>&lt;/div&gt;
+          &lt;div class='panel-body'&gt;<span class="hljs-subst">#{options.fn(@)}</span>&lt;/div&gt;
+        &lt;/div&gt;"</span>
+    <span class="hljs-keyword">return</span> html</div></div></div></div></body></html>

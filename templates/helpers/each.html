@@ -1,0 +1,25 @@
+<!DOCTYPE html><html lang="en"><head><title>templates/helpers/each</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../../"><meta name="groc-document-path" content="templates/helpers/each"><meta name="groc-project-path" content="lib/templates/helpers/each.coffee"><meta name="groc-github-url" content="https://github.com/KleeGroup/focus"><link rel="stylesheet" type="text/css" media="all" href="../../assets/style.css"><script type="text/javascript" src="../../assets/behavior.js"></script><body><div id="meta"><div class="file-path"><a href="https://github.com/KleeGroup/focus/blob/master/lib/templates/helpers/each.coffee">lib/templates/helpers/each.coffee</a></div></div><div id="document"><div class="segment"><div class="comments "><div class="wrapper"><p>Redefinition of the each. Add an option in order to extend the context of the element inside the each loop.
+parentKeys
+Example
+    {{each collectionProperty}}
+    {{each collectionProperty parentKeys=&quot;prop1,prop2&quot;}}</p>
+<pre><code>{{each object}}
+    {{this.key}} : {{this.value}}
+{{/each}}</code></pre></div></div><div class="code"><div class="wrapper">Handlebars.registerHelper <span class="hljs-string">"each"</span>, <span class="hljs-function"><span class="hljs-params">(context, options)</span>-&gt;</span>
+  options = options <span class="hljs-keyword">or</span> {}
+  opt = options.hash <span class="hljs-keyword">or</span> {}
+  ret = <span class="hljs-string">""</span>;
+  parentProperties = <span class="hljs-literal">undefined</span>
+  <span class="hljs-keyword">if</span> opt.parentKeys?
+    parentProperties = _.pick(<span class="hljs-keyword">this</span>, opt.parentKeys.split(<span class="hljs-string">','</span>))
+    <span class="hljs-comment">#console.log(opt.parentKeys, parentProperties)</span>
+  context = context <span class="hljs-keyword">or</span> []
+  <span class="hljs-keyword">if</span> _.isArray(context)
+      <span class="hljs-keyword">for</span> elem <span class="hljs-keyword">in</span> (context <span class="hljs-keyword">or</span> [])
+        ctx = _.extend(elem, parentProperties)
+        ret = ret + options.fn(ctx)
+  <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> _.isObject(context)
+    <span class="hljs-keyword">for</span> elem <span class="hljs-keyword">of</span> (context <span class="hljs-keyword">or</span> {})
+        ctx = {<span class="hljs-attribute">key</span>: elem, value :_.extend(context[elem], parentProperties)}
+        ret = ret + options.fn(ctx)
+  <span class="hljs-keyword">return</span> ret</div></div></div></div></body></html>

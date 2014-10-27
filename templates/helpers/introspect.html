@@ -1,0 +1,13 @@
+<!DOCTYPE html><html lang="en"><head><title>templates/helpers/introspect</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../../"><meta name="groc-document-path" content="templates/helpers/introspect"><meta name="groc-project-path" content="lib/templates/helpers/introspect.coffee"><meta name="groc-github-url" content="https://github.com/KleeGroup/focus"><link rel="stylesheet" type="text/css" media="all" href="../../assets/style.css"><script type="text/javascript" src="../../assets/behavior.js"></script><body><div id="meta"><div class="file-path"><a href="https://github.com/KleeGroup/focus/blob/master/lib/templates/helpers/introspect.coffee">lib/templates/helpers/introspect.coffee</a></div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper">Handlebars.registerHelper <span class="hljs-string">"introspect"</span>, <span class="hljs-function"><span class="hljs-params">(property, options)</span> -&gt;</span>
+  options = options <span class="hljs-keyword">or</span> {}
+  opt = options.hash <span class="hljs-keyword">or</span> {}
+  isDisplay = <span class="hljs-keyword">if</span> opt.isDisplay? <span class="hljs-keyword">then</span> opt.isDisplay <span class="hljs-keyword">else</span> <span class="hljs-literal">true</span>
+  helperName = <span class="hljs-keyword">if</span> isDisplay <span class="hljs-keyword">then</span> <span class="hljs-string">"display_for"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">"input_for"</span>
+  modelName = <span class="hljs-keyword">this</span>.modelName <span class="hljs-keyword">or</span> property <span class="hljs-keyword">or</span> opt.modelName <span class="hljs-keyword">or</span> <span class="hljs-literal">undefined</span>
+  container = _.extend(<span class="hljs-keyword">this</span>, {<span class="hljs-attribute">modelName</span>: modelName})
+  metadatas = Fmk.Helpers.metadataBuilder.getMetadatas(container) <span class="hljs-keyword">or</span> {}
+  html = <span class="hljs-string">""</span>
+  <span class="hljs-keyword">for</span> prop <span class="hljs-keyword">of</span> metadatas
+    <span class="hljs-comment">#if container[prop]?</span>
+    html =  html + Handlebars.helpers[helperName].call(container, prop, {<span class="hljs-attribute">hash</span>: {<span class="hljs-attribute">col</span>: <span class="hljs-number">12</span>}})
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Handlebars.SafeString(html)</div></div></div></div></body></html>

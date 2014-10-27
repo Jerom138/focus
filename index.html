@@ -1,0 +1,44 @@
+<!DOCTYPE html><html lang="en"><head><title>index</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content=""><meta name="groc-document-path" content="index"><meta name="groc-project-path" content="README.md"><meta name="groc-github-url" content="https://github.com/KleeGroup/focus"><link rel="stylesheet" type="text/css" media="all" href="assets/style.css"><script type="text/javascript" src="assets/behavior.js"></script><body><div id="meta"><div class="file-path"><a href="https://github.com/KleeGroup/focus/blob/master/README.md">README.md</a></div></div><div id="document"><div class="segment"><div class="comments "><div class="wrapper"><h1 id="spa-fmk">spa-fmk</h1>
+<p><a href="https://travis-ci.org/KleeGroup/focus.svg"><img src="https://travis-ci.org/KleeGroup/focus.svg" alt="Build Status"></a></p>
+<p><strong>Currently in dev</strong></p>
+<p>Fmk for spa application.</p>
+<h2 id="what39s-inside">What&#39;s inside</h2>
+<p>See our <a href="https://github.com/KleeGroup/focus/wiki">wiki</a></p>
+<h2 id="how-to-build-the-lib">How to build the lib</h2>
+<p>The build system is made with <code>gulp</code> which is a node base build system. <code>npm install -g gulp</code>
+Then you have to launch the following command: <code>npm run build</code> which generates two outputs: one for the browser, one for node js (expecially for unit tests purpose).</p>
+<h3 id="browser">Browser</h3>
+<p>The browser build is inside the <code>dist/browser/fmk.js</code></p>
+<h3 id="node-js">Node js</h3>
+<p><code>dist/node</code> and one file per sub module.</p>
+<h2 id="unit-tests">Unit tests</h2>
+<p>All unit tests are written with mocha, and can be launched using the <code>npm run test</code> command.
+It uses <strong>mocha</strong>.</p>
+<h2 id="how-to-use-the-fmkjs-file">How to use the fmk.js file</h2>
+<p>You have to configure the <code>build.json</code> file which is at the root directory in order to copy the fmk.js dile into your <strong>vendor</strong> directory insode your application.
+Then in your project, <a href="http://brunch.io">brunch</a> should use it automatically.
+<em>Tip:</em> Remember in order to launch brunch: <code>brunch w</code> in  the directory of your SPA project.
+You can look at the <a href="https://github.com/KleeGroup/focus-starter-kit">focus-starter-kit</a> project to have an example application using this fmk.</p>
+<h2 id="dependencies">Dependencies:</h2>
+<h3 id="browser">Browser</h3>
+<ul>
+<li><a href="http://jquery.com">jQuery</a></li>
+<li><a href="http://underscorejs.org/">Underscore.js</a></li>
+<li><a href="http://backbonejs.org/">Backbone.js</a></li>
+<li><a href="http://momentjs.com/timezone/docs/">Moment.js</a></li>
+<li><a href="http://handlebarsjs.com/">Handlebars</a></li>
+<li><a href="http://numeraljs.com/">Numeral</a></li>
+</ul>
+<h3 id="node">Node</h3>
+<ul>
+<li><a href="http://underscorejs.org/">Underscore.js</a></li>
+<li><a href="http://backbonejs.org/">Backbone.js</a></li>
+<li><a href="http://visionmedia.github.io/mocha/">Mocha</a></li>
+<li>Promises with <a href="https://github.com/petkaantonov/bluebird">Bluebird</a></li>
+</ul>
+<h2 id="-contributors-https-github-com-kleegroup-focus-graphs-contributors-"><a href="https://github.com/KleeGroup/focus/graphs/contributors">Contributors</a></h2>
+<h2 id="todo">Todo</h2>
+<ul>
+<li>[] Change the way the view are build =&gt; Split them into files. common/ detail/ </li>
+<li>[] Split the view helpers.</li>
+</ul></div></div></div></div></body></html>

@@ -1,0 +1,784 @@
+<!DOCTYPE html><html lang="en"><head><title>helpers/view_helper</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../"><meta name="groc-document-path" content="helpers/view_helper"><meta name="groc-project-path" content="lib/helpers/view_helper.coffee"><meta name="groc-github-url" content="https://github.com/KleeGroup/focus"><link rel="stylesheet" type="text/css" media="all" href="../assets/style.css"><script type="text/javascript" src="../assets/behavior.js"></script><body><div id="meta"><div class="file-path"><a href="https://github.com/KleeGroup/focus/blob/master/lib/helpers/view_helper.coffee">lib/helpers/view_helper.coffee</a></div></div><div id="document"><div class="segment"><div class="comments "><div class="wrapper"><p>Put your handlebars.js helpers here.
+Globals variables.
+Get the domains definition as globals.</p></div></div><div class="code"><div class="wrapper">metadaBuilder = Fmk.Helpers.metadataBuilder<span class="hljs-comment"># require('./metadata_builder').metadataBuilder</span>
+domains_definition = Fmk.Helpers.metadataBuilder.getDomains()
+logger = <span class="hljs-keyword">new</span> Logger()
+
+Handlebars.registerHelper <span class="hljs-string">'pick'</span>, <span class="hljs-function"><span class="hljs-params">(val, options)</span> -&gt;</span>
+  <span class="hljs-keyword">return</span> options.hash[val]
+
+<span class="hljs-comment">#use in order to use the translation system in the view.</span>
+Handlebars.registerHelper <span class="hljs-string">"t"</span>, <span class="hljs-function"><span class="hljs-params">(i18n_key, options)</span> -&gt;</span>
+  opt = options.hash <span class="hljs-keyword">or</span> {}
+  suffix =  opt.suffix <span class="hljs-keyword">or</span> <span class="hljs-string">""</span>
+  prefix = opt.prefix <span class="hljs-keyword">or</span> <span class="hljs-string">""</span>
+  maxLength = opt.max
+  (i18n_key = <span class="hljs-keyword">this</span>[i18n_key]) <span class="hljs-keyword">if</span> opt.keyInContext <span class="hljs-keyword">is</span> <span class="hljs-literal">true</span>
+
+  params = <span class="hljs-keyword">if</span> opt.params? <span class="hljs-keyword">then</span> opt.params.split(<span class="hljs-string">','</span>) <span class="hljs-keyword">else</span> <span class="hljs-literal">undefined</span>
+  <span class="hljs-comment">#console.log(opt.params, _.pick.apply(@, params));</span>
+  params = <span class="hljs-keyword">if</span> params? <span class="hljs-keyword">then</span> _.pick.apply(@, params) <span class="hljs-keyword">else</span> <span class="hljs-literal">undefined</span>
+  result = i18n.t(<span class="hljs-string">"<span class="hljs-subst">#{prefix}</span><span class="hljs-subst">#{i18n_key}</span><span class="hljs-subst">#{suffix}</span>"</span>, params)
+  <span class="hljs-keyword">if</span> maxLength? <span class="hljs-keyword">and</span> maxLength &lt; result.length <span class="hljs-keyword">then</span> result = <span class="hljs-string">"<span class="hljs-subst">#{result.slice(<span class="hljs-number">0</span>,+maxLength)}</span>..."</span>
+  <span class="hljs-keyword">new</span> Handlebars.SafeString(result)
+
+<span class="hljs-comment">#use in order to debug a template.</span>
+Handlebars.registerHelper <span class="hljs-string">"debug"</span>, <span class="hljs-function"><span class="hljs-params">(optionalValue)</span> -&gt;</span>
+  <span class="hljs-built_in">console</span>.log <span class="hljs-string">"Current Context"</span>
+  <span class="hljs-built_in">console</span>.log <span class="hljs-string">"===================="</span>
+  <span class="hljs-built_in">console</span>.log <span class="hljs-keyword">this</span>
+  <span class="hljs-keyword">if</span> optionalValue
+    <span class="hljs-built_in">console</span>.log <span class="hljs-string">"Value"</span>
+    <span class="hljs-built_in">console</span>.log <span class="hljs-string">"===================="</span>
+    <span class="hljs-built_in">console</span>.log optionalValue   
+
+<span class="hljs-comment">###------------------------------------------- FORM FOR THE INPUTS -------------------------------------------###</span>
+Handlebars.registerHelper <span class="hljs-string">"display_for"</span>, <span class="hljs-function"><span class="hljs-params">(property, options)</span> -&gt;</span>
+  options = options <span class="hljs-keyword">or</span> {}
+  opt = options.hash <span class="hljs-keyword">or</span> {}
+  modelName = <span class="hljs-keyword">this</span>.modelName <span class="hljs-keyword">or</span> opt.modelName <span class="hljs-keyword">or</span> {}
+  container = _.extend(<span class="hljs-keyword">this</span>, {<span class="hljs-attribute">modelName</span>: modelName})
+  metadata = <span class="hljs-keyword">if</span> container.metadatas? <span class="hljs-keyword">and</span> container.metadatas[property]? <span class="hljs-keyword">then</span> container.metadatas[property] <span class="hljs-keyword">else</span> {}<span class="hljs-comment">#metadaBuilder.getMetadataForAttribute(container,property)</span>
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> metadata.domain? <span class="hljs-keyword">then</span> logger.warn(<span class="hljs-string">"There is no domain for your field named : <span class="hljs-subst">#{property}</span>"</span>, container)
+  domain =  Fmk.Helpers.metadataBuilder.getDomains()[metadata.domain] <span class="hljs-keyword">or</span> {}
+  translationRoot = opt.translationRoot <span class="hljs-keyword">or</span> <span class="hljs-literal">undefined</span>
+  dataType = opt.dataType <span class="hljs-keyword">or</span> domain.type <span class="hljs-keyword">or</span> <span class="hljs-string">"text"</span>
+  (dataType = <span class="hljs-string">"checkbox"</span>) <span class="hljs-keyword">if</span> dataType <span class="hljs-keyword">is</span> <span class="hljs-string">"boolean"</span>
+  containerAttribs = opt.containerAttribs <span class="hljs-keyword">or</span> <span class="hljs-string">""</span>
+  containerCss = opt.containerCss <span class="hljs-keyword">or</span> <span class="hljs-string">""</span>
+  labelSizeValue = <span class="hljs-keyword">if</span> opt.isNoLabel <span class="hljs-keyword">then</span> <span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> opt.labelSize <span class="hljs-keyword">then</span> opt.labelSize <span class="hljs-keyword">else</span> <span class="hljs-number">4</span>
+  labelSize = <span class="hljs-string">"col-sm-<span class="hljs-subst">#{labelSizeValue}</span> col-md-<span class="hljs-subst">#{labelSizeValue}</span> col-lg-<span class="hljs-subst">#{labelSizeValue}</span>"</span>
+  col = <span class="hljs-keyword">if</span> opt.col? <span class="hljs-keyword">then</span> Handlebars.helpers.col.call(<span class="hljs-keyword">this</span>, opt.col) <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  noHtml = <span class="hljs-keyword">if</span> opt.noHtml? <span class="hljs-keyword">then</span> opt.noHtml <span class="hljs-keyword">else</span> <span class="hljs-literal">false</span>
+  noGrid = <span class="hljs-keyword">if</span> opt.noGrid? <span class="hljs-keyword">then</span> opt.noGrid <span class="hljs-keyword">else</span> <span class="hljs-literal">false</span>
+  htmlId = <span class="hljs-keyword">if</span> opt.htmlId? <span class="hljs-keyword">then</span> <span class="hljs-string">"id='<span class="hljs-subst">#{opt.htmlId}</span>'"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  linkTo = <span class="hljs-keyword">if</span> opt.linkTo? <span class="hljs-keyword">then</span> opt.linkTo <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  <span class="hljs-comment">#Generate link</span>
+  <span class="hljs-function"><span class="hljs-title">linkOpen</span> = <span class="hljs-params">()</span> =&gt;</span> 
+    <span class="hljs-keyword">if</span> linkTo <span class="hljs-keyword">then</span> <span class="hljs-keyword">return</span> <span class="hljs-string">"&lt;a href='<span class="hljs-subst">#{linkTo}</span>' data-bypass&gt;"</span> <span class="hljs-keyword">else</span> <span class="hljs-keyword">return</span> <span class="hljs-string">""</span>
+  <span class="hljs-function"><span class="hljs-title">linkClose</span> = <span class="hljs-params">()</span> =&gt;</span>
+    <span class="hljs-keyword">if</span> linkTo <span class="hljs-keyword">then</span> <span class="hljs-keyword">return</span> <span class="hljs-string">"&lt;/a&gt;"</span> <span class="hljs-keyword">else</span> <span class="hljs-keyword">return</span> <span class="hljs-string">""</span>
+  <span class="hljs-comment">#Deal with the inputSize</span>
+  <span class="hljs-function"><span class="hljs-title">inputSize</span> = <span class="hljs-params">()</span>=&gt;</span>
+    <span class="hljs-comment">#When it's a checkbox from BootstrapSwitch the input size is equal to zero.</span>
+    <span class="hljs-keyword">if</span> noGrid <span class="hljs-keyword">or</span> opt.containerCss
+      inputSize = <span class="hljs-string">""</span>
+    <span class="hljs-keyword">else</span>
+      inputSizeValue = <span class="hljs-number">12</span> - labelSizeValue
+      inputSize = opt.inputSize <span class="hljs-keyword">or</span> <span class="hljs-string">"col-sm-<span class="hljs-subst">#{inputSizeValue}</span> col-md-<span class="hljs-subst">#{inputSizeValue}</span> col-lg-<span class="hljs-subst">#{inputSizeValue}</span>"</span>
+  
+  <span class="hljs-comment">#Get the value of the transalated label.</span>
+  <span class="hljs-function"><span class="hljs-title">translationKey</span> =<span class="hljs-params">()</span>=&gt;</span>
+    translation = opt.translationKey <span class="hljs-keyword">or</span> metadata.label <span class="hljs-keyword">or</span> (<span class="hljs-string">"<span class="hljs-subst">#{<span class="hljs-keyword">this</span>[<span class="hljs-string">'modelName'</span>]}</span>.<span class="hljs-subst">#{property}</span>"</span> <span class="hljs-keyword">if</span> <span class="hljs-keyword">this</span>[<span class="hljs-string">'modelName'</span>]?) <span class="hljs-keyword">or</span> <span class="hljs-string">""</span>
+    <span class="hljs-keyword">if</span> translationRoot?
+      translation = ((<span class="hljs-keyword">if</span> (translationRoot?) <span class="hljs-keyword">and</span> <span class="hljs-keyword">typeof</span> translationRoot <span class="hljs-keyword">is</span> <span class="hljs-string">"string"</span> <span class="hljs-keyword">then</span> translationRoot + <span class="hljs-string">"."</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>)) + property
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">if</span>(translation <span class="hljs-keyword">is</span> <span class="hljs-string">""</span>) <span class="hljs-keyword">then</span> <span class="hljs-string">""</span> <span class="hljs-keyword">else</span> i18n.t(translation)
+  <span class="hljs-comment">#compute the label</span>
+  <span class="hljs-function"><span class="hljs-title">label</span> = <span class="hljs-params">()</span>=&gt;</span>
+    <span class="hljs-keyword">if</span> opt.isNoLabel?
+      <span class="hljs-keyword">return</span> <span class="hljs-string">""</span>
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> noHtml
+      <span class="hljs-keyword">return</span> <span class="hljs-string">"<span class="hljs-subst">#{translationKey()}</span>"</span>
+    <span class="hljs-keyword">else</span>
+      <span class="hljs-keyword">return</span> <span class="hljs-string">"&lt;label class='control-label <span class="hljs-subst">#{labelSize}</span>' for='<span class="hljs-subst">#{property}</span>'&gt;<span class="hljs-subst">#{translationKey()}</span>&lt;/label&gt;"</span> 
+  <span class="hljs-comment">#Get the value of the property</span>
+  <span class="hljs-function"><span class="hljs-title">propertyValue</span> =  <span class="hljs-params">()</span>=&gt;</span>
+    metadataClass = <span class="hljs-keyword">if</span> metadata.style? <span class="hljs-keyword">then</span> metadata.style <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+    <span class="hljs-comment">#console.log "metadataClass", metadataClass</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">this</span>[property]?
+      propValue = <span class="hljs-keyword">this</span>[property]
+      <span class="hljs-keyword">if</span> opt.listKey?
+        key = <span class="hljs-keyword">this</span>[property]
+        value = _.findWhere(_this[opt.listKey], {<span class="hljs-attribute">code</span>:_this[property]})
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> value?
+           value = _.findWhere(_this[opt.listKey], {<span class="hljs-attribute">id</span>:_this[property]})
+        <span class="hljs-keyword">if</span> value?
+          propValue = <span class="hljs-keyword">if</span> opt.labelProperty <span class="hljs-keyword">then</span> value[opt.labelProperty] <span class="hljs-keyword">else</span> value.label
+        <span class="hljs-keyword">else</span>
+          propValue = <span class="hljs-literal">undefined</span>
+      <span class="hljs-keyword">if</span> noHtml
+        <span class="hljs-keyword">return</span> <span class="hljs-string">"<span class="hljs-subst">#{_.escape(propValue)}</span>"</span>
+      <span class="hljs-keyword">if</span> metadata.format? <span class="hljs-keyword">and</span>  metadata.format.value?
+        <span class="hljs-comment">#console.log("format", metadata.format(), "value", propValue)</span>
+        propValue =  metadata.format.value(propValue, metadata.format.options)
+      <span class="hljs-keyword">if</span> metadata.symbol?
+        propValue = propValue + <span class="hljs-string">" "</span> + i18n.t(metadata.symbol)
+      <span class="hljs-keyword">if</span> dataType <span class="hljs-keyword">is</span> <span class="hljs-string">"checkbox"</span>
+         propValue = <span class="hljs-keyword">if</span> <span class="hljs-keyword">this</span>[property] <span class="hljs-keyword">then</span> i18n.t(<span class="hljs-string">"search.labels.true"</span>) <span class="hljs-keyword">else</span> i18n.t(<span class="hljs-string">"search.labels.false"</span>)
+      <span class="hljs-keyword">if</span> dataType <span class="hljs-keyword">is</span> <span class="hljs-string">"date"</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">this</span>[property] <span class="hljs-keyword">isnt</span> <span class="hljs-string">""</span>
+        <span class="hljs-keyword">return</span> <span class="hljs-string">"&lt;div <span class="hljs-subst">#{htmlId}</span> class='<span class="hljs-subst">#{metadataClass}</span>'&gt;<span class="hljs-subst">#{propValue}</span>&lt;/div&gt;"</span>
+      <span class="hljs-keyword">else</span> <span class="hljs-keyword">return</span> <span class="hljs-string">"&lt;div <span class="hljs-subst">#{htmlId}</span> class='<span class="hljs-subst">#{metadataClass}</span>'&gt;<span class="hljs-subst">#{linkOpen()}</span><span class="hljs-subst">#{_.escape(propValue)}</span><span class="hljs-subst">#{linkClose()}</span>&lt;/div&gt;"</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-string">""</span>
+  <span class="hljs-keyword">if</span> noHtml <span class="hljs-keyword">then</span> <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Handlebars.SafeString(<span class="hljs-string">"<span class="hljs-subst">#{label()}</span> <span class="hljs-subst">#{propertyValue()}</span>"</span>)
+  html = <span class="hljs-string">"&lt;div class='form-group <span class="hljs-subst">#{col}</span>'&gt;
+            <span class="hljs-subst">#{label()}</span>
+            &lt;div class='<span class="hljs-subst">#{inputSize()}</span> <span class="hljs-subst">#{containerCss}</span>' <span class="hljs-subst">#{containerAttribs}</span>&gt;
+              &lt;div class='form-control-static'&gt;<span class="hljs-subst">#{propertyValue()}</span>&lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt; "</span>
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Handlebars.SafeString(html)
+  
+Handlebars.registerHelper <span class="hljs-string">"returns_if_contains"</span>, <span class="hljs-function"><span class="hljs-params">(property, options)</span> =&gt;</span>
+  opt = options.hash <span class="hljs-keyword">or</span> {}
+  value=opt.value
+  <span class="hljs-keyword">if</span> _.contains(property, value) 
+    <span class="hljs-keyword">return</span> opt.<span class="hljs-keyword">return</span>
+  <span class="hljs-keyword">return</span> <span class="hljs-string">''</span>
+
+Handlebars.registerHelper <span class="hljs-string">"input_for"</span>, <span class="hljs-function"><span class="hljs-params">(property, options)</span> -&gt;</span>
+  options = options <span class="hljs-keyword">or</span> {}
+  <span class="hljs-comment">#Initialize the variables which are options</span>
+  html = <span class="hljs-literal">undefined</span>
+  translationRoot = <span class="hljs-literal">undefined</span>
+  dataType = <span class="hljs-literal">undefined</span>
+  <span class="hljs-comment">#Read all the options if they exists</span>
+  opt = options.hash <span class="hljs-keyword">or</span> {}
+  modelName = <span class="hljs-keyword">this</span>.modelName <span class="hljs-keyword">or</span> opt.modelName <span class="hljs-keyword">or</span> <span class="hljs-literal">undefined</span>
+  container = _.extend(<span class="hljs-keyword">this</span>, {<span class="hljs-attribute">modelName</span>: modelName})
+  metadata = Fmk.Helpers.metadataBuilder.getMetadataForAttribute(container,property)
+  <span class="hljs-comment">#console.log "metadata",metadata</span>
+  domain = Fmk.Helpers.metadataBuilder.getDomains()[metadata.domain] <span class="hljs-keyword">or</span> {}
+  <span class="hljs-comment">#console.log "domain", domain</span>
+  minimalHtml = <span class="hljs-keyword">if</span> opt.minimalHtml? <span class="hljs-keyword">then</span> opt.minimalHtml <span class="hljs-keyword">else</span> <span class="hljs-literal">false</span>
+  noGrid = <span class="hljs-keyword">if</span> opt.noGrid <span class="hljs-keyword">then</span> opt.noGrid <span class="hljs-keyword">else</span> <span class="hljs-literal">false</span>
+  <span class="hljs-function"><span class="hljs-title">dataFields</span> = <span class="hljs-params">(context)</span>-&gt;</span>
+    subHTML = <span class="hljs-string">""</span>
+    <span class="hljs-keyword">if</span> opt.dataFields
+      fieldNames = opt.dataFields.split(<span class="hljs-string">','</span>)
+      fieldNames.forEach<span class="hljs-function"><span class="hljs-params">((fieldName)-&gt;
+        <span class="hljs-keyword">if</span> context[fieldName]
+          subHTML = subHTML + <span class="hljs-string">"data-<span class="hljs-subst">#{fieldName}</span>='<span class="hljs-subst">#{context[fieldName]}</span>'"</span>
+      )</span>        
+    <span class="hljs-title">return</span> <span class="hljs-title">subHTML</span>
+  <span class="hljs-title">isDisplayRequired</span> = <span class="hljs-title">false</span>
+  <span class="hljs-title">isRequired</span> = <span class="hljs-params">()</span>=&gt;</span>
+    isDisplayRequired = <span class="hljs-literal">false</span>
+    <span class="hljs-keyword">if</span> opt.isRequired?
+      isDisplayRequired = opt.isRequired
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> metadata.required?
+      isDisplayRequired = metadata.required
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">if</span> isDisplayRequired <span class="hljs-keyword">then</span> <span class="hljs-string">"&lt;span class='input-group-addon'&gt;*&lt;/span&gt;"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  <span class="hljs-function"><span class="hljs-title">symbol</span> = <span class="hljs-params">()</span>=&gt;</span>
+    isSymbol = <span class="hljs-literal">false</span>
+    <span class="hljs-comment">#console.log(metadata, isSymbol)</span>
+    <span class="hljs-keyword">if</span> opt.symbol?
+      isSymbol = opt.symbol
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> metadata.symbol?
+      isSymbol = metadata.symbol
+
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">if</span> isSymbol <span class="hljs-keyword">then</span> <span class="hljs-string">"&lt;span class='input-group-addon'&gt;<span class="hljs-subst">#{isSymbol}</span>&lt;/span&gt;"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  <span class="hljs-comment">#isRequired = if !opt.isRequired? or !opt.isRequired then "" else "&lt;span class='input-group-addon'&gt;*&lt;/span&gt;"</span>
+  translationRoot = opt.translationRoot <span class="hljs-keyword">or</span> <span class="hljs-literal">undefined</span>
+  dataType = opt.dataType <span class="hljs-keyword">or</span> domain.type <span class="hljs-keyword">or</span> <span class="hljs-string">"text"</span>
+  (dataType = <span class="hljs-string">"checkbox"</span>) <span class="hljs-keyword">if</span> dataType <span class="hljs-keyword">is</span> <span class="hljs-string">"boolean"</span>
+  readonly = opt.readonly <span class="hljs-keyword">or</span> <span class="hljs-literal">false</span>
+  readonly = <span class="hljs-keyword">if</span> readonly <span class="hljs-keyword">then</span> <span class="hljs-string">"readonly"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  disabled = opt.disabled <span class="hljs-keyword">or</span> <span class="hljs-literal">false</span>
+  disabled = <span class="hljs-keyword">if</span> disabled <span class="hljs-keyword">then</span> <span class="hljs-string">"disabled"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  inputAttributes= <span class="hljs-keyword">this</span>[opt.inputAttributes] <span class="hljs-keyword">or</span> opt.inputAttributes <span class="hljs-keyword">or</span> <span class="hljs-string">""</span>
+  cidAttr = <span class="hljs-keyword">if</span> opt.cidSelection = <span class="hljs-literal">true</span> <span class="hljs-keyword">then</span> <span class="hljs-string">"cid='<span class="hljs-subst">#{<span class="hljs-property">@cid</span>}</span>'"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  <span class="hljs-comment">#Add bootstrap-switch css to checkbox input.</span>
+  containerAttribs = opt.containerAttribs <span class="hljs-keyword">or</span> <span class="hljs-string">""</span>
+  containerCss = opt.containerCss <span class="hljs-keyword">or</span> <span class="hljs-string">""</span>
+  labelSizeValue = <span class="hljs-keyword">if</span> opt.isNoLabel <span class="hljs-keyword">then</span> <span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> opt.labelSize <span class="hljs-keyword">then</span> opt.labelSize <span class="hljs-keyword">else</span> <span class="hljs-number">4</span>
+  labelSize = <span class="hljs-string">"col-sm-<span class="hljs-subst">#{labelSizeValue}</span> col-md-<span class="hljs-subst">#{labelSizeValue}</span> col-lg-<span class="hljs-subst">#{labelSizeValue}</span>"</span>
+  col = <span class="hljs-keyword">if</span> opt.col? <span class="hljs-keyword">then</span> Handlebars.helpers.col.call(<span class="hljs-keyword">this</span>, opt.col) <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  <span class="hljs-comment">#Deal with the inputSize</span>
+  <span class="hljs-function"><span class="hljs-title">inputSize</span> = <span class="hljs-params">()</span>=&gt;</span>
+    <span class="hljs-comment">#When it's a checkbox from BootstrapSwitch the input size is equal to zero.</span>
+    <span class="hljs-keyword">if</span> noGrid <span class="hljs-keyword">or</span> opt.containerCss
+      inputSize = <span class="hljs-string">""</span>
+    <span class="hljs-keyword">else</span>
+      inputSizeValue = <span class="hljs-number">12</span> - labelSizeValue
+      inputSize = opt.inputSize <span class="hljs-keyword">or</span> <span class="hljs-string">"col-sm-<span class="hljs-subst">#{inputSizeValue}</span> col-md-<span class="hljs-subst">#{inputSizeValue}</span> col-lg-<span class="hljs-subst">#{inputSizeValue}</span>"</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Define all the case where there is an input addon.
+todo:pbn maybe remove the isAddOnInput because there if ther is a mix of symbol and no symbol the input size is different.</p></div></div><div class="code"><div class="wrapper">  isAddOnInput = <span class="hljs-literal">true</span> <span class="hljs-keyword">or</span> opt.icon? <span class="hljs-keyword">or</span> ((opt.isRequired || metadata.required)) <span class="hljs-keyword">is</span> <span class="hljs-literal">true</span> <span class="hljs-keyword">or</span> ((opt.symbol || metadata.symbol))?
+  <span class="hljs-comment">#Get the value of the property</span>
+  <span class="hljs-function"><span class="hljs-title">propertyValue</span> =  <span class="hljs-params">()</span>=&gt;</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">this</span>[property]?
+      propValue = <span class="hljs-keyword">this</span>[property]
+      <span class="hljs-keyword">if</span> metadata.format? <span class="hljs-keyword">and</span> metadata.format.value?
+        <span class="hljs-comment">#console.log("format", metadata.format(), "value", propValue)</span>
+        propValue =  metadata.format.value(propValue, metadata.format.options)
+      <span class="hljs-keyword">if</span> dataType <span class="hljs-keyword">is</span> <span class="hljs-string">"checkbox"</span>
+        <span class="hljs-keyword">if</span> propValue <span class="hljs-keyword">then</span> <span class="hljs-keyword">return</span> <span class="hljs-string">'checked'</span>
+      <span class="hljs-keyword">if</span> dataType <span class="hljs-keyword">is</span> <span class="hljs-string">"date"</span> <span class="hljs-keyword">and</span> propValue <span class="hljs-keyword">isnt</span> <span class="hljs-string">""</span>
+        <span class="hljs-keyword">return</span> <span class="hljs-string">"value='"</span> + propValue + <span class="hljs-string">"'"</span>
+      <span class="hljs-keyword">if</span> dataType <span class="hljs-keyword">is</span> <span class="hljs-string">"number"</span>
+        <span class="hljs-keyword">return</span> <span class="hljs-string">"value='"</span> + numeral(propValue).value() + <span class="hljs-string">"'"</span> 
+      <span class="hljs-keyword">else</span> <span class="hljs-keyword">return</span> <span class="hljs-string">"value='<span class="hljs-subst">#{_.escape(propValue)}</span>'"</span>
+    <span class="hljs-string">""</span>
+  <span class="hljs-comment">#Get the value of the translated label.</span>
+  <span class="hljs-function"><span class="hljs-title">translationKey</span> =<span class="hljs-params">()</span>=&gt;</span>
+    translation = opt.translationKey <span class="hljs-keyword">or</span> metadata.label <span class="hljs-keyword">or</span> (<span class="hljs-string">"<span class="hljs-subst">#{<span class="hljs-keyword">this</span>[<span class="hljs-string">'modelName'</span>]}</span>.<span class="hljs-subst">#{property}</span>"</span> <span class="hljs-keyword">if</span> <span class="hljs-keyword">this</span>[<span class="hljs-string">'modelName'</span>]?) <span class="hljs-keyword">or</span> <span class="hljs-string">""</span>
+    <span class="hljs-keyword">if</span> translationRoot?
+      translation = ((<span class="hljs-keyword">if</span> (translationRoot?) <span class="hljs-keyword">and</span> <span class="hljs-keyword">typeof</span> translationRoot <span class="hljs-keyword">is</span> <span class="hljs-string">"string"</span> <span class="hljs-keyword">then</span> translationRoot + <span class="hljs-string">"."</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>)) + property
+    
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">if</span>(translation <span class="hljs-keyword">is</span> <span class="hljs-string">""</span>) <span class="hljs-keyword">then</span> <span class="hljs-string">""</span> <span class="hljs-keyword">else</span> i18n.t(translation)
+   
+  <span class="hljs-comment">#Deal with the icon case</span>
+  <span class="hljs-function"><span class="hljs-title">icon</span> = <span class="hljs-params">()</span>=&gt;</span>  
+    <span class="hljs-comment">#&lt;span class='glyphicon glyphicon-#{opt.icon}'&gt;&lt;/span&gt;</span>
+    <span class="hljs-keyword">if</span> opt.icon? <span class="hljs-keyword">then</span> <span class="hljs-string">"&lt;span class='input-group-addon'&gt;&lt;i class='fa fa-<span class="hljs-subst">#{opt.icon}</span>  fa-fw'&gt;&lt;/i&gt; &lt;/span&gt;"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  <span class="hljs-comment">#Deal with the label</span>
+  <span class="hljs-function"><span class="hljs-title">label</span> = <span class="hljs-params">()</span>=&gt;</span>
+    <span class="hljs-keyword">if</span> opt.isNoLabel?
+      <span class="hljs-keyword">return</span> <span class="hljs-string">""</span>
+    <span class="hljs-keyword">else</span>
+      <span class="hljs-keyword">return</span> <span class="hljs-string">"&lt;label class='control-label <span class="hljs-subst">#{labelSize}</span>' for='<span class="hljs-subst">#{property}</span>'&gt;<span class="hljs-subst">#{translationKey()}</span>&lt;/label&gt;"</span>
+    <span class="hljs-comment">#if not opt.isNoLabel? then "&lt;label class='control-label #{labelSize}' for='#{property}'&gt; #{translationKey} &lt;/label&gt;" else ""</span>
+  <span class="hljs-comment">#By default there is a placeholder or if the preperty is true.</span>
+  placeholder = <span class="hljs-keyword">if</span> (!opt.placeholder? <span class="hljs-keyword">and</span> opt.isNoLabel) <span class="hljs-keyword">or</span> opt.placeholder <span class="hljs-keyword">then</span> <span class="hljs-string">"placeholder='<span class="hljs-subst">#{translationKey()}</span>'"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  <span class="hljs-comment">#console.log "placeholder", placeholder, (!opt.isNoLabel? or !opt.isNolabel)</span>
+  
+  <span class="hljs-function"><span class="hljs-title">decorator</span> = <span class="hljs-params">()</span>=&gt;</span>
+    <span class="hljs-keyword">if</span> metadata.decorator?
+      <span class="hljs-keyword">return</span> <span class="hljs-string">"data-decorator='<span class="hljs-subst">#{metadata.decorator}</span>'"</span>
+    <span class="hljs-keyword">else</span>
+      <span class="hljs-keyword">return</span> <span class="hljs-string">''</span>
+  
+  <span class="hljs-comment">#Initialize the errors variables =&gt; Is there an error, if yes what is the message.</span>
+  error = <span class="hljs-string">""</span>
+  error = <span class="hljs-string">"has-error"</span> <span class="hljs-keyword">if</span> <span class="hljs-property">@errors</span>? <span class="hljs-keyword">and</span> <span class="hljs-property">@errors</span>[property]?
+  errorValue = <span class="hljs-keyword">if</span> <span class="hljs-property">@errors</span>? <span class="hljs-keyword">and</span> <span class="hljs-property">@errors</span>[property]? <span class="hljs-keyword">then</span> i18n.t(<span class="hljs-property">@errors</span>[property]) <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  <span class="hljs-function"><span class="hljs-title">errorSize</span> = <span class="hljs-params">()</span>=&gt;</span>
+    errorLength = <span class="hljs-number">12</span> - labelSizeValue
+    offsetError = labelSizeValue
+    <span class="hljs-keyword">return</span> <span class="hljs-string">"col-sm-<span class="hljs-subst">#{errorLength}</span> col-md-<span class="hljs-subst">#{errorLength}</span> col-lg-<span class="hljs-subst">#{errorLength}</span> col-sm-offset-<span class="hljs-subst">#{offsetError}</span> col-md-offset-<span class="hljs-subst">#{offsetError}</span> col-lg-offset-<span class="hljs-subst">#{offsetError}</span>"</span>
+  <span class="hljs-comment">#Deal with error</span>
+  <span class="hljs-function"><span class="hljs-title">errors</span> = <span class="hljs-params">()</span>=&gt;</span>
+    <span class="hljs-keyword">if</span> error == <span class="hljs-string">"has-error"</span> <span class="hljs-keyword">then</span> <span class="hljs-string">"&lt;span class='<span class="hljs-subst">#{error}</span> <span class="hljs-subst">#{errorSize()}</span> help-inline pull-left' style='color:#b94a48'&gt; <span class="hljs-subst">#{errorValue }</span> &lt;/span&gt;"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  <span class="hljs-comment">#Build the html tag.</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><div class="form-group">
+    <label for="exampleInputEmail">Email address</label>
+    <input type="text" class="form-control" id="exampleInputEmail" placeholder="Enter email">
+  </div></div></div><div class="code"><div class="wrapper">  <span class="hljs-keyword">if</span> minimalHtml 
+      html = <span class="hljs-string">" &lt;input id='<span class="hljs-subst">#{property}</span>' <span class="hljs-subst">#{dataFields(@)}</span> <span class="hljs-subst">#{decorator()}</span> class=''"</span>
+      html += <span class="hljs-string">"data-name='<span class="hljs-subst">#{property}</span>' type='<span class="hljs-subst">#{dataType}</span>' <span class="hljs-subst">#{inputAttributes}</span> <span class="hljs-subst">#{cidAttr}</span> <span class="hljs-subst">#{placeholder}</span> <span class="hljs-subst">#{propertyValue()}</span> <span class="hljs-subst">#{readonly}</span> <span class="hljs-subst">#{disabled}</span>/&gt;"</span>
+  <span class="hljs-keyword">else</span>
+      html = <span class="hljs-string">"
+              &lt;div class='form-group <span class="hljs-subst">#{error}</span> <span class="hljs-subst">#{col}</span>'&gt;
+                <span class="hljs-subst">#{label()}</span>
+                &lt;div class='<span class="hljs-subst">#{inputSize()}</span> <span class="hljs-subst">#{containerCss}</span>' <span class="hljs-subst">#{containerAttribs}</span>&gt;
+                    &lt;div class='<span class="hljs-subst">#{<span class="hljs-keyword">if</span> isAddOnInput <span class="hljs-keyword">then</span> <span class="hljs-string">'input-group'</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>}</span>'&gt;
+                   <span class="hljs-subst">#{icon()}</span>
+                  &lt;input id='<span class="hljs-subst">#{property}</span>' <span class="hljs-subst">#{decorator()}</span> <span class="hljs-subst">#{dataFields(@)}</span> class='"</span>
+      <span class="hljs-keyword">if</span>(dataType != <span class="hljs-string">"checkbox"</span>) <span class="hljs-keyword">then</span> html +=<span class="hljs-string">"form-control "</span>
+      html += <span class="hljs-string">"input-sm' data-name='<span class="hljs-subst">#{property}</span>' type='<span class="hljs-subst">#{dataType}</span>' <span class="hljs-subst">#{inputAttributes}</span> <span class="hljs-subst">#{placeholder}</span> <span class="hljs-subst">#{propertyValue()}</span> <span class="hljs-subst">#{readonly}</span> <span class="hljs-subst">#{disabled}</span>/&gt;
+                  <span class="hljs-subst">#{symbol()}</span>"</span>
+      <span class="hljs-keyword">if</span>(dataType !=<span class="hljs-string">"checkbox"</span>) <span class="hljs-keyword">then</span> html +=<span class="hljs-string">"              <span class="hljs-subst">#{isRequired()}</span>"</span> <span class="hljs-keyword">else</span> html+=<span class="hljs-string">"              "</span>
+             
+      html+=<span class="hljs-string">"               &lt;/div&gt; 
+                        &lt;/div&gt;
+                <span class="hljs-subst">#{errors()}</span>
+              &lt;/div&gt;
+            "</span>
+  <span class="hljs-keyword">new</span> Handlebars.SafeString(html)
+  
+  
+Handlebars.registerHelper <span class="hljs-string">"radio_for"</span>, <span class="hljs-function"><span class="hljs-params">(property, options)</span> -&gt;</span>
+  options = options <span class="hljs-keyword">or</span> {}
+  <span class="hljs-comment">#Initialize the variables which are options</span>
+  html = <span class="hljs-literal">undefined</span>
+  translationRoot = <span class="hljs-literal">undefined</span>
+  dataType = <span class="hljs-literal">undefined</span>
+  <span class="hljs-comment">#Read all the options if they exists</span>
+  opt = options.hash <span class="hljs-keyword">or</span> {}
+  metadata = Fmk.Helpers.metadataBuilder.getMetadataForAttribute(<span class="hljs-keyword">this</span>,property)
+  <span class="hljs-comment">#console.log "metadata",metadata</span>
+  domain = Fmk.Helpers.metadataBuilder.getDomains()[metadata.domain] <span class="hljs-keyword">or</span> {}
+  <span class="hljs-comment">#possible values for the radio group</span>
+  possibleValues = [] ;
+  isDisplayRequired = <span class="hljs-literal">false</span>
+  <span class="hljs-function"><span class="hljs-title">isRequired</span> = <span class="hljs-params">()</span>=&gt;</span> 
+    isDisplayRequired = <span class="hljs-literal">false</span>
+    <span class="hljs-keyword">if</span> opt.isRequired?
+      isDisplayRequired = opt.isRequired
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> metadata.required?
+      isDisplayRequired = metadata.required
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">if</span> isDisplayRequired <span class="hljs-keyword">then</span> <span class="hljs-string">""</span> <span class="hljs-keyword">else</span> generateRadioButton(i18n.t(<span class="hljs-string">'search.labels.all'</span>), <span class="hljs-string">"null"</span>, defaultValue == <span class="hljs-string">""</span>)
+
+  translationRoot = opt.translationRoot <span class="hljs-keyword">or</span> <span class="hljs-literal">undefined</span>
+  dataType = opt.dataType <span class="hljs-keyword">or</span> domain.type <span class="hljs-keyword">or</span> <span class="hljs-string">"text"</span>
+  <span class="hljs-comment">#generate possible values or return classic input_for</span>
+  <span class="hljs-keyword">switch</span> dataType
+    <span class="hljs-keyword">when</span> <span class="hljs-string">"boolean"</span> <span class="hljs-keyword">then</span> possibleValues = [<span class="hljs-literal">true</span>, <span class="hljs-literal">false</span>]
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">return</span> <span class="hljs-string">"Type "</span> + dataType + <span class="hljs-string">" not supported by helper radio_for"</span>
+  defaultValue = <span class="hljs-keyword">if</span> opt.defaultValue != <span class="hljs-literal">undefined</span> <span class="hljs-keyword">then</span> opt.defaultValue <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  readonly = opt.readonly <span class="hljs-keyword">or</span> <span class="hljs-literal">false</span>
+  readonly = <span class="hljs-keyword">if</span> readonly <span class="hljs-keyword">then</span> <span class="hljs-string">"readonly"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  disabled = opt.disabled <span class="hljs-keyword">or</span> <span class="hljs-literal">false</span>
+  disabled = <span class="hljs-keyword">if</span> disabled <span class="hljs-keyword">then</span> <span class="hljs-string">"disabled"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  inputAttributes= opt.inputAttributes <span class="hljs-keyword">or</span> <span class="hljs-string">""</span>
+  <span class="hljs-comment">#Add bootstrap-switch css to checkbox input.</span>
+  containerAttribs = opt.containerAttribs <span class="hljs-keyword">or</span> <span class="hljs-string">""</span>
+  containerCss = opt.containerCss <span class="hljs-keyword">or</span> <span class="hljs-string">""</span>
+  labelSizeValue = <span class="hljs-keyword">if</span> opt.isNoLabel <span class="hljs-keyword">then</span> <span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> opt.labelSize <span class="hljs-keyword">then</span> opt.labelSize <span class="hljs-keyword">else</span> <span class="hljs-number">3</span>
+  labelSize = <span class="hljs-string">"col-sm-<span class="hljs-subst">#{labelSizeValue}</span> col-md-<span class="hljs-subst">#{labelSizeValue}</span> col-lg-<span class="hljs-subst">#{labelSizeValue}</span>"</span>
+  col = <span class="hljs-keyword">if</span> opt.col? <span class="hljs-keyword">then</span> Handlebars.helpers.col.call(<span class="hljs-keyword">this</span>, opt.col) <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  radioSizeValue = opt.radioSize <span class="hljs-keyword">or</span> <span class="hljs-number">4</span>
+  radioSize = <span class="hljs-string">"col-sm-<span class="hljs-subst">#{radioSizeValue}</span> col-md-<span class="hljs-subst">#{radioSizeValue}</span> col-lg-<span class="hljs-subst">#{radioSizeValue}</span>"</span>
+  <span class="hljs-comment">#Deal with the inputSize</span>
+  <span class="hljs-function"><span class="hljs-title">inputSize</span> = <span class="hljs-params">()</span>=&gt;</span>
+      inputSizeValue = <span class="hljs-number">12</span> - labelSizeValue
+      inputSize = opt.inputSize <span class="hljs-keyword">or</span> <span class="hljs-string">"col-sm-<span class="hljs-subst">#{inputSizeValue}</span> col-md-<span class="hljs-subst">#{inputSizeValue}</span> col-lg-<span class="hljs-subst">#{inputSizeValue}</span>"</span>
+  <span class="hljs-comment">#Deal with the label</span>
+  <span class="hljs-function"><span class="hljs-title">label</span> = <span class="hljs-params">()</span>=&gt;</span>
+    <span class="hljs-keyword">if</span> opt.isNoLabel?
+      <span class="hljs-keyword">return</span> <span class="hljs-string">""</span>
+    <span class="hljs-keyword">else</span>
+      <span class="hljs-keyword">return</span> <span class="hljs-string">"&lt;label class='control-label <span class="hljs-subst">#{labelSize}</span>' for='<span class="hljs-subst">#{property}</span>'&gt;<span class="hljs-subst">#{translationKey()}</span>&lt;/label&gt;"</span>
+  <span class="hljs-comment">#Get the value of the transalated label.</span>
+  <span class="hljs-function"><span class="hljs-title">translationKey</span> =<span class="hljs-params">()</span>=&gt;</span>
+    translation = opt.translationKey <span class="hljs-keyword">or</span>   metadata.label <span class="hljs-keyword">or</span> (<span class="hljs-string">"<span class="hljs-subst">#{<span class="hljs-keyword">this</span>[<span class="hljs-string">'modelName'</span>]}</span>.<span class="hljs-subst">#{property}</span>"</span> <span class="hljs-keyword">if</span> <span class="hljs-keyword">this</span>[<span class="hljs-string">'modelName'</span>]?) <span class="hljs-keyword">or</span> <span class="hljs-string">""</span>
+    <span class="hljs-keyword">if</span> translationRoot?
+      translation = ((<span class="hljs-keyword">if</span> (translationRoot?) <span class="hljs-keyword">and</span> <span class="hljs-keyword">typeof</span> translationRoot <span class="hljs-keyword">is</span> <span class="hljs-string">"string"</span> <span class="hljs-keyword">then</span> translationRoot + <span class="hljs-string">"."</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>)) + property
+    
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">if</span>(translation <span class="hljs-keyword">is</span> <span class="hljs-string">""</span>) <span class="hljs-keyword">then</span> <span class="hljs-string">""</span> <span class="hljs-keyword">else</span> i18n.t(translation)
+   
+    <span class="hljs-comment">#if not opt.isNoLabel? then "&lt;label class='control-label #{labelSize}' for='#{property}'&gt; #{translationKey} &lt;/label&gt;" else ""</span>
+  <span class="hljs-comment">#By default there is a placeholder or if the preperty is true.</span>
+  placeholder = <span class="hljs-keyword">if</span> (!opt.placeholder? <span class="hljs-keyword">and</span> opt.isNoLabel) <span class="hljs-keyword">or</span> opt.placeholder <span class="hljs-keyword">then</span> <span class="hljs-string">"placeholder='<span class="hljs-subst">#{translationKey()}</span>'"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  <span class="hljs-comment">#console.log "placeholder", placeholder, (!opt.isNoLabel? or !opt.isNolabel)</span>
+  
+  <span class="hljs-comment">#Checked by default</span>
+  <span class="hljs-function"><span class="hljs-title">checked</span> = <span class="hljs-params">(value, isDefault)</span> =&gt;</span> 
+    isChecked =  <span class="hljs-keyword">this</span>[property] <span class="hljs-keyword">is</span> value <span class="hljs-keyword">or</span> ((<span class="hljs-keyword">not</span> <span class="hljs-keyword">this</span>[property]?) <span class="hljs-keyword">and</span> isDefault) <span class="hljs-keyword">or</span> <span class="hljs-literal">false</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">if</span> isChecked <span class="hljs-keyword">then</span> <span class="hljs-string">"checked='checked'"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  
+  <span class="hljs-comment">#Basic layout for radio button</span>
+  <span class="hljs-function"><span class="hljs-title">generateRadioButton</span> = <span class="hljs-params">(label, value, isDefault)</span> =&gt;</span> 
+    <span class="hljs-keyword">return</span> <span class="hljs-string">"
+    &lt;div class='<span class="hljs-subst">#{radioSize}</span>'&gt;
+         &lt;div class='input-group'&gt;
+             &lt;span class='input-group-addon'&gt;
+                &lt;input id='<span class="hljs-subst">#{property + value}</span>' name='<span class="hljs-subst">#{property}</span>' data-name='<span class="hljs-subst">#{property}</span>' type=radio value='<span class="hljs-subst">#{value}</span>' <span class="hljs-subst">#{checked(value,isDefault)}</span> <span class="hljs-subst">#{inputAttributes}</span> <span class="hljs-subst">#{placeholder}</span> <span class="hljs-subst">#{readonly}</span> <span class="hljs-subst">#{disabled}</span>/&gt;      
+             &lt;/span&gt;
+             &lt;label for='<span class="hljs-subst">#{property + value}</span>' class='form-control'&gt;
+               <span class="hljs-subst">#{label}</span>
+             &lt;/label&gt;
+          &lt;/div&gt;
+      &lt;/div&gt;"</span>
+  
+  <span class="hljs-comment">#Deal with error</span>
+  <span class="hljs-comment">#Initialize the errors variables =&gt; Is there an error, if yes what is the message.</span>
+  error = <span class="hljs-string">""</span>
+  error = <span class="hljs-string">"has-error"</span> <span class="hljs-keyword">if</span> <span class="hljs-property">@errors</span>? <span class="hljs-keyword">and</span> <span class="hljs-property">@errors</span>[property]?
+  errorValue = <span class="hljs-keyword">if</span> <span class="hljs-property">@errors</span>? <span class="hljs-keyword">and</span> <span class="hljs-property">@errors</span>[property]? <span class="hljs-keyword">then</span> i18n.t(<span class="hljs-property">@errors</span>[property]) <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  <span class="hljs-function"><span class="hljs-title">errorSize</span> = <span class="hljs-params">()</span>=&gt;</span>
+    errorLength = <span class="hljs-number">12</span> - labelSizeValue
+    offsetError = labelSizeValue
+    <span class="hljs-keyword">return</span> <span class="hljs-string">"col-sm-<span class="hljs-subst">#{errorLength}</span> col-md-<span class="hljs-subst">#{errorLength}</span> col-lg-<span class="hljs-subst">#{errorLength}</span> col-sm-offset-<span class="hljs-subst">#{offsetError}</span> col-md-offset-<span class="hljs-subst">#{offsetError}</span> col-lg-offset-<span class="hljs-subst">#{offsetError}</span>"</span>
+  <span class="hljs-comment">#create the radios</span>
+  radios = isRequired()
+  radios += generateRadioButton(i18n.t(<span class="hljs-string">'search.labels.'</span>+value), value, value == defaultValue) <span class="hljs-keyword">for</span> value <span class="hljs-keyword">in</span> possibleValues
+  
+  <span class="hljs-function"><span class="hljs-title">errors</span> = <span class="hljs-params">()</span>=&gt;</span>
+    <span class="hljs-keyword">if</span> error == <span class="hljs-string">"has-error"</span> <span class="hljs-keyword">then</span> <span class="hljs-string">"&lt;span class='<span class="hljs-subst">#{error}</span> <span class="hljs-subst">#{errorSize()}</span> help-inline pull-left' style='color:#b94a48'&gt; <span class="hljs-subst">#{errorValue }</span> &lt;/span&gt;"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  html = <span class="hljs-string">"
+          &lt;div class='form-group <span class="hljs-subst">#{error}</span> <span class="hljs-subst">#{col}</span>'&gt;
+            <span class="hljs-subst">#{label()}</span>
+            &lt;div class='<span class="hljs-subst">#{inputSize()}</span> <span class="hljs-subst">#{containerCss}</span>' <span class="hljs-subst">#{containerAttribs}</span>&gt;
+              <span class="hljs-subst">#{radios}</span>
+              &lt;/div&gt;
+            <span class="hljs-subst">#{errors()}</span>
+          &lt;/div&gt;
+        "</span>
+  <span class="hljs-keyword">new</span> Handlebars.SafeString(html)
+
+<span class="hljs-comment">#Generate a optionset selector. https://developer.mozilla.org/en-US/docs/Web/API/HTMLSelectElement</span>
+Handlebars.registerHelper <span class="hljs-string">"options_selected"</span>, <span class="hljs-function"><span class="hljs-params">(property, options)</span> -&gt;</span>
+  options = options <span class="hljs-keyword">or</span> {}
+  opt = options.hash <span class="hljs-keyword">or</span> {}
+  cssClass = <span class="hljs-keyword">if</span> opt.cssClass? <span class="hljs-keyword">then</span> opt.cssClass <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  optName = <span class="hljs-keyword">if</span> opt.optName? <span class="hljs-keyword">then</span> <span class="hljs-string">"data-name='<span class="hljs-subst">#{opt.optName}</span>'"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  optToTriggerName = <span class="hljs-keyword">if</span> opt.optToTriggerName? <span class="hljs-keyword">then</span> <span class="hljs-string">"data-opttotrigger-name='<span class="hljs-subst">#{opt.optToTriggerName}</span>'"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  optToTriggerListKey = <span class="hljs-keyword">if</span> opt.optToTriggerListKey? <span class="hljs-keyword">then</span> <span class="hljs-string">"data-opttotrigger-listkey='<span class="hljs-subst">#{opt.optToTriggerListKey}</span>'"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  optMapping = <span class="hljs-keyword">if</span> opt.optMapping? <span class="hljs-keyword">then</span> <span class="hljs-keyword">this</span>[opt.optMapping] <span class="hljs-keyword">else</span> <span class="hljs-literal">null</span>
+  dataMapping = <span class="hljs-keyword">if</span> optMapping? <span class="hljs-keyword">then</span> <span class="hljs-string">"data-mapping=<span class="hljs-subst">#{optMapping}</span>"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  list = <span class="hljs-keyword">this</span>[opt.listKey] <span class="hljs-keyword">or</span> []
+  selected = <span class="hljs-keyword">this</span>[property] <span class="hljs-keyword">or</span> opt.selected <span class="hljs-keyword">or</span> <span class="hljs-literal">undefined</span>
+  <span class="hljs-keyword">if</span>(opt.addDefault)
+    list =[{<span class="hljs-attribute">id</span>: <span class="hljs-literal">undefined</span>, <span class="hljs-attribute">label</span>: <span class="hljs-string">''</span>}].concat(list)
+  metadata = Fmk.Helpers.metadataBuilder.getMetadataForAttribute(<span class="hljs-keyword">this</span>,property)
+  domain = Fmk.Helpers.metadataBuilder.getDomains()[metadata.domain] <span class="hljs-keyword">or</span> {}
+  <span class="hljs-comment">#console.log "domain", domain</span>
+  <span class="hljs-function"><span class="hljs-title">isRequired</span> = <span class="hljs-params">()</span>=&gt;</span>
+    isDisplayRequired = <span class="hljs-literal">false</span>
+    <span class="hljs-keyword">if</span> opt.isRequired?
+      isDisplayRequired = opt.isRequired
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> metadata.required?
+      isDisplayRequired = metadata.required
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">if</span> isDisplayRequired <span class="hljs-keyword">then</span> <span class="hljs-string">"&lt;span class='input-group-addon'&gt;*&lt;/span&gt;"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  translationRoot = opt.translationRoot <span class="hljs-keyword">or</span> <span class="hljs-literal">undefined</span>
+  isAtLine = opt.isAtLine <span class="hljs-keyword">or</span> <span class="hljs-literal">false</span>
+  readonly = opt.readonly <span class="hljs-keyword">or</span> <span class="hljs-literal">false</span>
+  readonly = <span class="hljs-keyword">if</span> readonly <span class="hljs-keyword">then</span> <span class="hljs-string">"disabled"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  labelSizeValue = <span class="hljs-keyword">if</span> opt.isNoLabel <span class="hljs-keyword">then</span> <span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> opt.labelSize <span class="hljs-keyword">then</span> opt.labelSize <span class="hljs-keyword">else</span> <span class="hljs-number">4</span>
+  labelSize = <span class="hljs-string">"col-sm-<span class="hljs-subst">#{labelSizeValue}</span> col-md-<span class="hljs-subst">#{labelSizeValue}</span> col-lg-<span class="hljs-subst">#{labelSizeValue}</span>"</span>
+  col = <span class="hljs-keyword">if</span> opt.col? <span class="hljs-keyword">then</span> Handlebars.helpers.col.call(<span class="hljs-keyword">this</span>, opt.col) <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  
+  <span class="hljs-function"><span class="hljs-title">inputSize</span> = <span class="hljs-params">()</span>=&gt;</span>
+    <span class="hljs-comment">#When it's a checkbox from BootstrapSwitch the input size is equal to zero.</span>
+    <span class="hljs-keyword">if</span> opt.containerCss
+      inputSize = <span class="hljs-string">""</span>
+    <span class="hljs-keyword">else</span>
+      inputSizeValue = <span class="hljs-number">12</span> - labelSizeValue
+      inputSize = opt.inputSize <span class="hljs-keyword">or</span> <span class="hljs-string">"col-sm-<span class="hljs-subst">#{inputSizeValue}</span> col-md-<span class="hljs-subst">#{inputSizeValue}</span> col-lg-<span class="hljs-subst">#{inputSizeValue}</span>"</span>
+  <span class="hljs-comment">#Get the value of the transalated label.</span>
+  <span class="hljs-comment">#Get the value of the transalated label.</span>
+  <span class="hljs-function"><span class="hljs-title">translationKey</span> =<span class="hljs-params">()</span>=&gt;</span>
+    translation = opt.translationKey <span class="hljs-keyword">or</span> metadata.label <span class="hljs-keyword">or</span> (<span class="hljs-string">"<span class="hljs-subst">#{<span class="hljs-keyword">this</span>[<span class="hljs-string">'modelName'</span>]}</span>.<span class="hljs-subst">#{property}</span>"</span> <span class="hljs-keyword">if</span> <span class="hljs-keyword">this</span>[<span class="hljs-string">'modelName'</span>]?) <span class="hljs-keyword">or</span> <span class="hljs-string">""</span>
+    <span class="hljs-keyword">if</span> translationRoot?
+      translation = ((<span class="hljs-keyword">if</span> (translationRoot?) <span class="hljs-keyword">and</span> <span class="hljs-keyword">typeof</span> translationRoot <span class="hljs-keyword">is</span> <span class="hljs-string">"string"</span> <span class="hljs-keyword">then</span> translationRoot + <span class="hljs-string">"."</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>)) + property
+    
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">if</span>(translation <span class="hljs-keyword">is</span> <span class="hljs-string">""</span>) <span class="hljs-keyword">then</span> <span class="hljs-string">""</span> <span class="hljs-keyword">else</span> i18n.t(translation)
+  <span class="hljs-function"><span class="hljs-title">icon</span> = <span class="hljs-params">()</span>=&gt;</span>  
+  <span class="hljs-comment">#&lt;span class='glyphicon glyphicon-#{opt.icon}'&gt;&lt;/span&gt;</span>
+    <span class="hljs-keyword">if</span> opt.icon? <span class="hljs-keyword">then</span> <span class="hljs-string">"&lt;span class='input-group-addon'&gt;&lt;i class='fa fa-<span class="hljs-subst">#{opt.icon}</span> fa-fw'&gt;&lt;/i&gt; &lt;/span&gt;"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+    <span class="hljs-comment">#if opt.icon? then "&lt;span class='input-group-addon'&gt; &lt;span class='glyphicon glyphicon-#{opt.icon}'&gt;&lt;/span&gt;&lt;/span&gt;" else ""</span>
+  isAddOnInput = <span class="hljs-literal">true</span> <span class="hljs-keyword">or</span> opt.icon? <span class="hljs-keyword">or</span> (opt.isRequired || metadata.required) <span class="hljs-keyword">is</span> <span class="hljs-literal">true</span>
+   <span class="hljs-comment">#Deal with the label</span>
+  <span class="hljs-function"><span class="hljs-title">label</span> = <span class="hljs-params">()</span>=&gt;</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> opt.isNoLabel?
+      <span class="hljs-keyword">if</span> isAtLine
+        <span class="hljs-string">"&lt;div class='row'&gt;&lt;label class='control-label for='<span class="hljs-subst">#{property}</span>'&gt; <span class="hljs-subst">#{translationKey()}</span> &lt;/label&gt;&lt;/div&gt;"</span>
+      <span class="hljs-keyword">else</span>
+        <span class="hljs-string">"&lt;label class='control-label <span class="hljs-subst">#{labelSize}</span>' for='<span class="hljs-subst">#{property}</span>'&gt; <span class="hljs-subst">#{translationKey()}</span> &lt;/label&gt;"</span> 
+    <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  <span class="hljs-comment">#Initialize the errors variables =&gt; Is there an error, if yes what is the message.</span>
+  error = <span class="hljs-string">""</span>
+  error = <span class="hljs-string">"has-error"</span> <span class="hljs-keyword">if</span> <span class="hljs-property">@errors</span>? <span class="hljs-keyword">and</span> <span class="hljs-property">@errors</span>[property]?
+  errorValue = <span class="hljs-keyword">if</span> <span class="hljs-property">@errors</span>? <span class="hljs-keyword">and</span> <span class="hljs-property">@errors</span>[property]? <span class="hljs-keyword">then</span> i18n.t(<span class="hljs-property">@errors</span>[property]) <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  <span class="hljs-comment">#Deal with error</span>
+  <span class="hljs-function"><span class="hljs-title">errors</span> = <span class="hljs-params">()</span>=&gt;</span>
+    <span class="hljs-keyword">if</span> error == <span class="hljs-string">"has-error"</span> <span class="hljs-keyword">then</span> <span class="hljs-string">"&lt;span class='<span class="hljs-subst">#{error}</span> help-inline pull-left' style='color:#b94a48'&gt; <span class="hljs-subst">#{errorValue }</span> &lt;/span&gt;"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  jsonGiven = <span class="hljs-keyword">this</span>
+  <span class="hljs-comment">#We define a small addOption function in order to add an option to the select.</span>
+  <span class="hljs-function"><span class="hljs-title">addOption</span> = <span class="hljs-params">(elt)</span> -&gt;</span>
+    id = elt.id <span class="hljs-keyword">or</span> elt.code
+    prop = <span class="hljs-keyword">if</span> opt.labelProperty <span class="hljs-keyword">then</span> elt[opt.labelProperty] <span class="hljs-keyword">else</span> elt.label
+    isSelected = <span class="hljs-keyword">if</span> selected? <span class="hljs-keyword">and</span> id? <span class="hljs-keyword">and</span> ((!_.isArray(selected) <span class="hljs-keyword">and</span> id.toString() <span class="hljs-keyword">is</span> selected.toString()) <span class="hljs-keyword">or</span> (_.isArray(selected) <span class="hljs-keyword">and</span> selected.indexOf(id.toString()) &gt; -<span class="hljs-number">1</span>)) <span class="hljs-keyword">then</span> <span class="hljs-string">"selected"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+    html+= <span class="hljs-string">"&lt;option value= '<span class="hljs-subst">#{id}</span>'  <span class="hljs-subst">#{isSelected}</span>&gt;<span class="hljs-subst">#{prop}</span>&lt;/option&gt;"</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">undefined</span>
+  multiple = <span class="hljs-keyword">if</span> opt.isMultiple <span class="hljs-keyword">then</span> <span class="hljs-string">"multiple style='width:'resolve';'"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Define </p></div></div><div class="code"><div class="wrapper">  <span class="hljs-function"><span class="hljs-title">emptyOption</span> = -&gt;</span>
+    isRequiredWithValue = selected? <span class="hljs-keyword">and</span> ( isRequired() <span class="hljs-keyword">isnt</span> <span class="hljs-string">""</span>)
+    <span class="hljs-keyword">if</span>((opt.isEmpty <span class="hljs-keyword">is</span> <span class="hljs-literal">true</span>) <span class="hljs-keyword">or</span> ((opt.isMultiple <span class="hljs-keyword">is</span> <span class="hljs-literal">true</span>) <span class="hljs-keyword">or</span> (isRequiredWithValue <span class="hljs-keyword">is</span> <span class="hljs-literal">true</span>)) <span class="hljs-keyword">and</span> (<span class="hljs-keyword">not</span> opt.isNotEmpty))
+      <span class="hljs-keyword">return</span> <span class="hljs-string">""</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-string">"&lt;option&gt;&lt;/option&gt;"</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Save the following information=&gt; Edit mode with a value and display required =&gt; No empty option.</p></div></div><div class="code"><div class="wrapper">    <span class="hljs-comment">#return "&lt;option&gt;&lt;/option&gt;" if ((not isEditAndRequired) and (not opt.isNotEmpty)) and (not opt.isMultiple)</span>
+  <span class="hljs-comment">#Initialize the html  </span>
+  html = <span class="hljs-string">"&lt;div class='form-group <span class="hljs-subst">#{error}</span> <span class="hljs-subst">#{col}</span>'&gt;
+            <span class="hljs-subst">#{label()}</span>
+            &lt;div class='controls <span class="hljs-subst">#{inputSize()}</span>'&gt;
+              &lt;div class='input-group '&gt;
+                <span class="hljs-subst">#{icon()}</span>                
+                &lt;select id='<span class="hljs-subst">#{property}</span>' data-name='<span class="hljs-subst">#{property}</span>' <span class="hljs-subst">#{multiple}</span> <span class="hljs-subst">#{readonly}</span> <span class="hljs-subst">#{optName}</span> <span class="hljs-subst">#{optToTriggerName}</span> <span class="hljs-subst">#{optToTriggerListKey}</span> <span class="hljs-subst">#{dataMapping}</span> class='form-control input-sm <span class="hljs-subst">#{cssClass}</span>'&gt;<span class="hljs-subst">#{emptyOption()}</span>"</span>
+  <span class="hljs-comment">#add options foreach options in the list</span>
+  addOption(elt) <span class="hljs-keyword">for</span> elt <span class="hljs-keyword">in</span> list
+  html +=      <span class="hljs-string">"&lt;/select&gt;<span class="hljs-subst">#{isRequired()}</span> 
+              &lt;/div&gt;
+              <span class="hljs-subst">#{errors()}</span>
+            &lt;/div&gt;
+          &lt;/div&gt;"</span>  
+  <span class="hljs-keyword">new</span> Handlebars.SafeString(html)</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Format a date using moment.js.</p></div></div><div class="code"><div class="wrapper">Handlebars.registerHelper <span class="hljs-string">"dateFormat"</span>,<span class="hljs-function"><span class="hljs-params">(_date, options)</span> -&gt;</span>
+  formatedDate = <span class="hljs-string">''</span>
+  <span class="hljs-keyword">if</span> _date
+    opt = options.hash <span class="hljs-keyword">or</span> {}
+    format = opt.format <span class="hljs-keyword">or</span> <span class="hljs-built_in">require</span>(<span class="hljs-string">'../config'</span>).dateFormat<span class="hljs-comment"># Todo: reenable or require('./configuration').getConfiguration().format.date</span>
+    formatedDate = moment(_date).format(format)
+  <span class="hljs-keyword">new</span> Handlebars.SafeString(formatedDate)
+
+<span class="hljs-comment">#S4  </span>
+<span class="hljs-function"><span class="hljs-title">S4</span> = -&gt;</span>
+  (((<span class="hljs-number">1</span> + Math.random()) * <span class="hljs-number">0x10000</span>) | <span class="hljs-number">0</span>).toString(<span class="hljs-number">16</span>).substring <span class="hljs-number">1</span>
+
+<span class="hljs-comment">#Generate a pseudo-GUID by concatenating random hexadecimal.</span>
+<span class="hljs-function"><span class="hljs-title">guid</span> = -&gt;</span>
+  S4() + S4() + <span class="hljs-string">"-"</span> + S4() + <span class="hljs-string">"-"</span> + S4() + <span class="hljs-string">"-"</span> + S4() + <span class="hljs-string">"-"</span> + S4() + S4() + S4()</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Example =&gt; button &quot;transalationKey&quot;, icon=&quot;heart&quot; id=&quot;12&quot; class=&quot;btn-danger&quot; type=&quot;submit&quot;</p></div></div><div class="code"><div class="wrapper">Handlebars.registerHelper <span class="hljs-string">"button"</span>,<span class="hljs-function"><span class="hljs-params">(text_key, options)</span> -&gt;</span>
+  <span class="hljs-comment">#console.log "button", i18n.t(text_key)</span>
+  opt = options.hash <span class="hljs-keyword">or</span> {}
+  <span class="hljs-keyword">if</span> opt.role  <span class="hljs-keyword">isnt</span> <span class="hljs-literal">undefined</span> <span class="hljs-keyword">and</span> !Fmk.Helpers.userHelper.hasRole(opt.role)
+    <span class="hljs-keyword">return</span> <span class="hljs-string">""</span>
+  isLoading =  opt.isLoading
+  cssClass = opt.class <span class="hljs-keyword">or</span> <span class="hljs-string">""</span>
+  cssId = opt.id <span class="hljs-keyword">or</span> guid()
+  dataAttributes = opt.dataAttributes <span class="hljs-keyword">or</span> <span class="hljs-string">""</span> 
+  type = opt.type <span class="hljs-keyword">or</span> <span class="hljs-string">"button"</span>
+  action = <span class="hljs-keyword">if</span> opt.action? <span class="hljs-keyword">then</span> <span class="hljs-string">"data-action=<span class="hljs-subst">#{action}</span>"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  <span class="hljs-function"><span class="hljs-title">loading</span> = -&gt;</span>
+    <span class="hljs-keyword">if</span> isLoading <span class="hljs-keyword">or</span> type <span class="hljs-keyword">is</span> <span class="hljs-string">'submit'</span>
+      <span class="hljs-keyword">return</span> <span class="hljs-string">"data-loading data-loading-text='<span class="hljs-subst">#{opt.loadingText <span class="hljs-keyword">or</span> i18n.t(<span class="hljs-string">'button.loading'</span>)}</span>'"</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-string">""</span>
+  <span class="hljs-function"><span class="hljs-title">icon</span> = <span class="hljs-params">()</span>-&gt;</span>
+     <span class="hljs-keyword">if</span> opt.icon? <span class="hljs-keyword">then</span> <span class="hljs-string">"&lt;i class='fa fa-fw fa-<span class="hljs-subst">#{opt.icon}</span>'&gt;&lt;/i&gt;"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+  button = <span class="hljs-string">"&lt;button type='<span class="hljs-subst">#{type}</span>' <span class="hljs-subst">#{action}</span>  <span class="hljs-subst">#{dataAttributes}</span> class='btn <span class="hljs-subst">#{cssClass}</span>' id='<span class="hljs-subst">#{cssId}</span>' <span class="hljs-subst">#{loading()}</span>&gt;<span class="hljs-subst">#{icon()}</span> <span class="hljs-subst">#{<span class="hljs-keyword">if</span> text_key <span class="hljs-keyword">isnt</span> <span class="hljs-string">''</span> <span class="hljs-keyword">then</span> i18n.t(text_key) <span class="hljs-keyword">else</span> <span class="hljs-string">''</span>}</span>&lt;/button&gt;"</span>
+  <span class="hljs-keyword">new</span> Handlebars.SafeString(button)</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>display pagination on table 
+consume an object in the this which is : 
+<code>{currentPage: currentPage, firstPage: firstPage, totalPages: totalPages, perPage: perPage, totalRecords: totalRecords}</code></p></div></div><div class="code"><div class="wrapper">Handlebars.registerHelper <span class="hljs-string">"paginate"</span>, <span class="hljs-function"><span class="hljs-params">(property, options)</span>-&gt;</span>
+  options = options <span class="hljs-keyword">or</span> {}
+  options = options.hash <span class="hljs-keyword">or</span> {}
+  <span class="hljs-keyword">return</span> <span class="hljs-string">""</span> <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-property">@collection</span>?
+  <span class="hljs-keyword">return</span> <span class="hljs-string">""</span> <span class="hljs-keyword">if</span> <span class="hljs-property">@collection</span>? <span class="hljs-keyword">and</span> <span class="hljs-property">@collection</span>.length <span class="hljs-keyword">is</span> <span class="hljs-number">0</span>
+  currentPage = <span class="hljs-keyword">this</span>.currentPage
+  firstPage = <span class="hljs-keyword">this</span>.firstPage <span class="hljs-keyword">or</span> <span class="hljs-number">1</span>
+  endPage = <span class="hljs-keyword">this</span>.totalPages <span class="hljs-keyword">or</span> <span class="hljs-number">0</span>
+
+  nbPrint = <span class="hljs-number">4</span>;
+  firstPagePrint = Math.max(firstPage, currentPage - nbPrint)
+  lastPagePrint = Math.min(endPage, currentPage + nbPrint)
+  nbPagePrint = lastPagePrint - firstPagePrint
+  <span class="hljs-keyword">if</span> nbPagePrint &lt; nbPrint * <span class="hljs-number">2</span>
+    <span class="hljs-keyword">if</span> endPage - lastPagePrint &gt; nbPrint
+      lastPagePrint += nbPrint * <span class="hljs-number">2</span> - nbPagePrint
+    <span class="hljs-keyword">else</span>
+      firstPagePrint -= nbPrint * <span class="hljs-number">2</span> - nbPagePrint
+  
+  firstPagePrint = Math.max(firstPagePrint, <span class="hljs-number">1</span>);
+   
+  perPage = <span class="hljs-keyword">this</span>.perPage <span class="hljs-keyword">or</span> <span class="hljs-number">10</span>
+  totalRecords = <span class="hljs-keyword">this</span>.totalRecords
+  <span class="hljs-function"><span class="hljs-title">generateLeftArrow</span> = <span class="hljs-params">()</span>-&gt;</span>
+    className = <span class="hljs-keyword">if</span> currentPage <span class="hljs-keyword">is</span> firstPage <span class="hljs-keyword">then</span> <span class="hljs-string">"disabled"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-string">"&lt;li class='<span class="hljs-subst">#{className}</span>'&gt;&lt;a href='#' data-bypass data-page='<span class="hljs-subst">#{firstPage}</span>'&gt;&amp;laquo;&lt;/a&gt;&lt;/li&gt;"</span>
+  <span class="hljs-function"><span class="hljs-title">generatePageNumber</span>= <span class="hljs-params">()</span>-&gt;</span>
+    html = <span class="hljs-string">""</span>
+    (html+= <span class="hljs-string">"&lt;li class='<span class="hljs-subst">#{<span class="hljs-keyword">if</span> i <span class="hljs-keyword">is</span> currentPage <span class="hljs-keyword">then</span> <span class="hljs-string">'active'</span> <span class="hljs-keyword">else</span> <span class="hljs-string">''</span>}</span>'&gt;&lt;a href='#' data-bypass data-page='<span class="hljs-subst">#{i}</span>'&gt;<span class="hljs-subst">#{i}</span>&lt;/a&gt;&lt;/li&gt;"</span>) <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [firstPagePrint..lastPagePrint]
+    <span class="hljs-keyword">return</span> html
+  <span class="hljs-function"><span class="hljs-title">generateRigthArrow</span> = <span class="hljs-params">()</span>-&gt;</span>
+    className = <span class="hljs-keyword">if</span> currentPage <span class="hljs-keyword">is</span> endPage <span class="hljs-keyword">then</span> <span class="hljs-string">"disabled"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-string">"&lt;li class='<span class="hljs-subst">#{className}</span>'&gt;&lt;a href='#' data-bypass  data-page='<span class="hljs-subst">#{endPage}</span>'&gt;&amp;raquo;&lt;/a&gt;&lt;/li&gt;"</span>
+  <span class="hljs-function"><span class="hljs-title">generatePagination</span> = -&gt;</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-string">""</span> <span class="hljs-keyword">if</span> totalRecords &lt;= perPage
+    <span class="hljs-keyword">return</span> <span class="hljs-string">"<span class="hljs-subst">#{generateLeftArrow()}</span><span class="hljs-subst">#{generatePageNumber()}</span><span class="hljs-subst">#{generateRigthArrow()}</span>"</span>
+  <span class="hljs-function"><span class="hljs-title">generatePageFilter</span> = <span class="hljs-params">()</span>-&gt;</span>
+    pageString = i18n.t(<span class="hljs-string">"application.pages"</span>)
+    <span class="hljs-function"><span class="hljs-title">generateOptions</span> = <span class="hljs-params">()</span>-&gt;</span>
+      html = <span class="hljs-string">""</span>
+      <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">1.</span><span class="hljs-number">.4</span>]
+        html += <span class="hljs-string">"&lt;option value='<span class="hljs-subst">#{<span class="hljs-number">5</span>*i}</span>' <span class="hljs-subst">#{<span class="hljs-keyword">if</span> <span class="hljs-number">5</span>*i <span class="hljs-keyword">is</span> perPage <span class="hljs-keyword">then</span> <span class="hljs-string">'selected'</span>}</span>&gt;<span class="hljs-subst">#{<span class="hljs-number">5</span>*i}</span> <span class="hljs-subst">#{pageString}</span>&lt;/option&gt;"</span>
+      <span class="hljs-keyword">return</span> html
+      
+    <span class="hljs-keyword">return</span> <span class="hljs-string">"&lt;select class='form-control pageFilter'&gt;
+              <span class="hljs-subst">#{generateOptions()}</span> 
+            &lt;/select&gt;"</span>
+  <span class="hljs-function"><span class="hljs-title">generateTotal</span> = <span class="hljs-params">()</span>-&gt;</span>
+    resultString = i18n.t(<span class="hljs-string">'search.result'</span>)
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">if</span> options.showResultNumber <span class="hljs-keyword">then</span> <span class="hljs-string">"&lt;div class='badgeResult'&gt;<span class="hljs-subst">#{resultString}</span> &lt;span class='badge'&gt;<span class="hljs-subst">#{totalRecords}</span>&lt;/span&gt;&lt;/div&gt;"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+    
+  html = <span class="hljs-string">"&lt;div class='col-md-8'&gt;
+            &lt;ul class='pagination'&gt;<span class="hljs-subst">#{generatePagination()}</span>&lt;/ul&gt;
+          &lt;/div&gt;
+          &lt;div class='col-md-2 pagination'&gt;
+            <span class="hljs-subst">#{generateTotal()}</span>
+          &lt;/div&gt;
+          &lt;div class='col-md-2 pagination'&gt;
+            <span class="hljs-subst">#{generatePageFilter()}</span>
+          &lt;/div&gt;"</span>
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Handlebars.SafeString(html)</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p><code>{totalRecords: totalRecords}</code></p></div></div><div class="code"><div class="wrapper">Handlebars.registerHelper <span class="hljs-string">"tableHeaderAction"</span>, <span class="hljs-function"><span class="hljs-params">(options)</span>-&gt;</span>
+  options = options <span class="hljs-keyword">or</span> {}
+  options = options.hash <span class="hljs-keyword">or</span> {}
+  totalRecords = <span class="hljs-keyword">this</span>.totalRecords <span class="hljs-keyword">or</span> <span class="hljs-number">0</span>
+  resultString = i18n.t(options.resultLabel <span class="hljs-keyword">or</span> <span class="hljs-string">'search.result'</span>)
+  <span class="hljs-function"><span class="hljs-title">exportButton</span> = -&gt;</span>
+    <span class="hljs-keyword">if</span> options.exportUrl? &amp;&amp; totalRecords &gt; <span class="hljs-number">0</span>
+      <span class="hljs-keyword">return</span> <span class="hljs-string">"
+        &lt;div class='pull-right export'&gt;
+          &lt;button   data-bypass class='btn btnExport'&gt;&lt;i class='fa fa-table'&gt;&lt;/i&gt;<span class="hljs-subst">#{i18n.t(<span class="hljs-string">'search.export'</span>)}</span>&lt;/button&gt;
+          &lt;a href='<span class="hljs-subst">#{options.exportUrl}</span>' data-bypass class='btn hidden btnExport'&gt;&lt;i class='fa fa-table'&gt;&lt;/i&gt; <span class="hljs-subst">#{i18n.t(<span class="hljs-string">'search.export'</span>)}</span>&lt;/a&gt;
+        &lt;/div&gt;
+        "</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-string">""</span>
+  <span class="hljs-function"><span class="hljs-title">generateTotal</span> = <span class="hljs-params">()</span>-&gt;</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-string">"&lt;span class='badge'&gt;<span class="hljs-subst">#{totalRecords}</span>&lt;/span&gt; <span class="hljs-subst">#{resultString}</span>"</span>
+  html = <span class="hljs-string">"&lt;div class='tableAction'&gt;
+            &lt;div class='pull-left'&gt;
+                <span class="hljs-subst">#{generateTotal()}</span>
+            &lt;/div&gt;
+            <span class="hljs-subst">#{exportButton()}</span>
+          &lt;/div&gt;"</span>
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Handlebars.SafeString(html)</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>display sort icon on table column
+<code>{sortField: sortField, order: order, modelName: modelName}</code></p></div></div><div class="code"><div class="wrapper">Handlebars.registerHelper <span class="hljs-string">"sortColumn"</span>, <span class="hljs-function"><span class="hljs-params">(property, options)</span>-&gt;</span>
+  options = options.hash <span class="hljs-keyword">or</span> {}
+  sortField = <span class="hljs-keyword">this</span>.sortField
+  order = <span class="hljs-keyword">this</span>.order || <span class="hljs-string">"asc"</span>
+  translationKey = options.translationKey <span class="hljs-keyword">or</span> <span class="hljs-literal">undefined</span>
+  <span class="hljs-function"><span class="hljs-title">generateSortPosition</span>= <span class="hljs-params">()</span>-&gt;</span>
+    icon = <span class="hljs-string">"fa fa-sort"</span>
+    <span class="hljs-keyword">if</span> property <span class="hljs-keyword">is</span> sortField
+      icon+= <span class="hljs-string">"-"</span> + order
+    <span class="hljs-keyword">return</span> <span class="hljs-string">"&lt;i class='<span class="hljs-subst">#{icon}</span>' data-name='<span class="hljs-subst">#{property}</span>'&gt;&lt;/i&gt;"</span>
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">this</span>.isEdit
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Handlebars.SafeString(<span class="hljs-string">"&lt;span class='sortColumn'&gt;<span class="hljs-subst">#{i18n.t(translationKey)}</span>&lt;/span&gt;"</span>)
+  <span class="hljs-keyword">new</span> Handlebars.SafeString(<span class="hljs-string">"&lt;a class='sortColumn'  href='#' data-name='<span class="hljs-subst">#{property}</span>' data-bypass&gt;<span class="hljs-subst">#{i18n.t(translationKey)}</span> <span class="hljs-subst">#{<span class="hljs-keyword">if</span> <span class="hljs-keyword">this</span>.isEdit <span class="hljs-keyword">then</span> <span class="hljs-string">''</span> <span class="hljs-keyword">else</span> generateSortPosition()}</span>&lt;/a&gt;"</span>)
+
+Handlebars.registerHelper <span class="hljs-string">"statusIcon"</span>, <span class="hljs-function"><span class="hljs-params">(property, options)</span>-&gt;</span>
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">typeof</span>(<span class="hljs-keyword">this</span>[property] == <span class="hljs-string">"boolean"</span>)
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">this</span>[property] <span class="hljs-keyword">then</span> icon = <span class="hljs-string">"fa fa-check"</span> <span class="hljs-keyword">else</span> icon = <span class="hljs-string">"fa fa-exclamation"</span>
+  <span class="hljs-keyword">else</span> <span class="hljs-keyword">switch</span> <span class="hljs-keyword">this</span>[property]
+    <span class="hljs-keyword">when</span> <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> icon = <span class="hljs-string">"fa fa-ban"</span>;
+    <span class="hljs-keyword">when</span> <span class="hljs-number">1</span> <span class="hljs-keyword">then</span> icon = <span class="hljs-string">"fa fa-exclamation"</span>;
+    <span class="hljs-keyword">when</span> <span class="hljs-number">2</span> <span class="hljs-keyword">then</span> icon = <span class="hljs-string">"fa fa-clock-o"</span>;
+    <span class="hljs-keyword">when</span> <span class="hljs-number">3</span> <span class="hljs-keyword">then</span> icon = <span class="hljs-string">"fa fa-check"</span>;
+    <span class="hljs-keyword">else</span> icon = <span class="hljs-string">""</span>
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Handlebars.SafeString(<span class="hljs-string">"&lt;i class='<span class="hljs-subst">#{icon}</span>'&gt;&lt;i&gt;"</span>);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Helper in order to display a progress bar.</p></div></div><div class="code"><div class="wrapper">Handlebars.registerHelper <span class="hljs-string">"progress"</span>, <span class="hljs-function"><span class="hljs-params">(property, options)</span>-&gt;</span>
+  <span class="hljs-comment">#Add each element of the property</span>
+  <span class="hljs-function"><span class="hljs-title">addElements</span> = <span class="hljs-params">(elements)</span>-&gt;</span>
+    html = <span class="hljs-string">""</span>
+    sum = <span class="hljs-number">0</span>
+    elements.forEach<span class="hljs-function"><span class="hljs-params">((elt)-&gt;
+      <span class="hljs-keyword">if</span>(<span class="hljs-keyword">not</span> _.isEmpty(elt))
+        sum+= elt.value 
+    )</span>
+    <span class="hljs-title">elements</span>.<span class="hljs-title">forEach</span><span class="hljs-params">((elt)-&gt;
+      <span class="hljs-keyword">if</span>(<span class="hljs-keyword">not</span> _.isEmpty(elt))
+        html += <span class="hljs-string">"&lt;div class='progress-bar progress-bar-<span class="hljs-subst">#{elt.type}</span>' style='width: <span class="hljs-subst">#{Math.floor(elt.value*<span class="hljs-number">100</span>/sum)}</span>%'&gt;
+          <span class="hljs-subst">#{elt.label}</span>
+        &lt;/div&gt;"</span>
+    )</span>
+    #<span class="hljs-title">console</span>.<span class="hljs-title">log</span> "<span class="hljs-title">progress</span>", <span class="hljs-title">html</span>
+    <span class="hljs-title">return</span> <span class="hljs-title">html</span>
+  <span class="hljs-title">return</span> <span class="hljs-title">new</span> <span class="hljs-title">Handlebars</span>.<span class="hljs-title">SafeString</span><span class="hljs-params">(<span class="hljs-string">"&lt;div class='progress'&gt;<span class="hljs-subst">#{addElements(@[property])}</span>&lt;/div&gt;"</span>)</span>
+</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Check if the user has one role.
+Example:
+  {{#hasOneRole &quot;ROLE1,ROLE2&quot;}}
+    <div>HTML code</div>
+  {{/hasOneRole}}</p></div></div><div class="code"><div class="wrapper">Handlebars.registerHelper <span class="hljs-string">"hasOneRole"</span>, <span class="hljs-function"><span class="hljs-params">(property, options)</span>-&gt;</span>
+  <span class="hljs-keyword">if</span> _.isString(property)
+    roles = property.split(<span class="hljs-string">','</span>)
+    <span class="hljs-keyword">if</span> Fmk.Helpers.userHelper.hasOneRole(roles)
+      <span class="hljs-keyword">return</span> options.fn(<span class="hljs-keyword">this</span>)</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Check if the user has a role.
+Example:
+  {{#hasRole &quot;ROLE_NON_EXISTANT&quot;}}
+    <div>HTML code</div>
+  {{/hasRole}}</p></div></div><div class="code"><div class="wrapper">Handlebars.registerHelper <span class="hljs-string">"hasRole"</span>, <span class="hljs-function"><span class="hljs-params">(property, options)</span>-&gt;</span>
+  <span class="hljs-keyword">if</span> _.isString(property) <span class="hljs-keyword">and</span> Fmk.Helpers.userHelper.hasRole(property)
+    <span class="hljs-keyword">return</span> options.fn(<span class="hljs-keyword">this</span>)
+    </div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Generate the bootstrap css classes for the grid.
+Example
+  {{col &quot;6&quot;}}</p></div></div><div class="code"><div class="wrapper">Handlebars.registerHelper <span class="hljs-string">"col"</span>, <span class="hljs-function"><span class="hljs-params">(property)</span>-&gt;</span>
+  <span class="hljs-keyword">return</span> <span class="hljs-string">"col-xs-<span class="hljs-subst">#{property}</span> col-sm-<span class="hljs-subst">#{property}</span> col-md-<span class="hljs-subst">#{property}</span> col-lg-<span class="hljs-subst">#{property}</span>"</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Redefinition of the each. Add an option in order to extend the context of the element inside the each loop.
+parentKeys
+Example
+    {{each collectionProperty}}
+    {{each collectionProperty parentKeys=&quot;prop1,prop2&quot;}}</p>
+<pre><code>{{each object}}
+    {{this.key}} : {{this.value}}
+{{/each}}</code></pre></div></div><div class="code"><div class="wrapper">Handlebars.registerHelper <span class="hljs-string">"each"</span>, <span class="hljs-function"><span class="hljs-params">(context, options)</span>-&gt;</span>
+  options = options <span class="hljs-keyword">or</span> {}
+  opt = options.hash <span class="hljs-keyword">or</span> {}
+  ret = <span class="hljs-string">""</span>;
+  parentProperties = <span class="hljs-literal">undefined</span>
+  <span class="hljs-keyword">if</span> opt.parentKeys?
+    parentProperties = _.pick(<span class="hljs-keyword">this</span>, opt.parentKeys.split(<span class="hljs-string">','</span>))
+    <span class="hljs-comment">#console.log(opt.parentKeys, parentProperties)</span>
+  context = context <span class="hljs-keyword">or</span> []
+  <span class="hljs-keyword">if</span> _.isArray(context)
+      <span class="hljs-keyword">for</span> elem <span class="hljs-keyword">in</span> (context <span class="hljs-keyword">or</span> [])
+        ctx = _.extend(elem, parentProperties)
+        ret = ret + options.fn(ctx)
+  <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> _.isObject(context)
+    <span class="hljs-keyword">for</span> elem <span class="hljs-keyword">of</span> (context <span class="hljs-keyword">or</span> {})
+        ctx = {<span class="hljs-attribute">key</span>: elem, value :_.extend(context[elem], parentProperties)}
+        ret = ret + options.fn(ctx)
+  <span class="hljs-keyword">return</span> ret
+
+Handlebars.registerHelper <span class="hljs-string">"introspect"</span>, <span class="hljs-function"><span class="hljs-params">(property, options)</span> -&gt;</span>
+  options = options <span class="hljs-keyword">or</span> {}
+  opt = options.hash <span class="hljs-keyword">or</span> {}
+  isDisplay = <span class="hljs-keyword">if</span> opt.isDisplay? <span class="hljs-keyword">then</span> opt.isDisplay <span class="hljs-keyword">else</span> <span class="hljs-literal">true</span>
+  helperName = <span class="hljs-keyword">if</span> isDisplay <span class="hljs-keyword">then</span> <span class="hljs-string">"display_for"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">"input_for"</span>
+  modelName = <span class="hljs-keyword">this</span>.modelName <span class="hljs-keyword">or</span> property <span class="hljs-keyword">or</span> opt.modelName <span class="hljs-keyword">or</span> <span class="hljs-literal">undefined</span>
+  container = _.extend(<span class="hljs-keyword">this</span>, {<span class="hljs-attribute">modelName</span>: modelName})
+  metadatas = Fmk.Helpers.metadataBuilder.getMetadatas(container) <span class="hljs-keyword">or</span> {}
+  html = <span class="hljs-string">""</span>
+  <span class="hljs-keyword">for</span> prop <span class="hljs-keyword">of</span> metadatas
+    <span class="hljs-comment">#if container[prop]?</span>
+    html =  html + Handlebars.helpers[helperName].call(container, prop, {<span class="hljs-attribute">hash</span>: {<span class="hljs-attribute">col</span>: <span class="hljs-number">12</span>}})
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Handlebars.SafeString(html)</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Currency helper in order to have a vizualization for the currency.</p></div></div><div class="code"><div class="wrapper"><span class="hljs-comment">## Todo: reenable when number format is needed..</span>
+<span class="hljs-comment">###Handlebars.registerHelper "currency",(property, options) -&gt;  
+  currencySymbol = ''
+  value = ''
+  if (+this[property])? or +this[property] is 0
+    value = +this[property]
+  if typeof value is 'number'
+    value = numeral(value).format(require('./configuration').getConfiguration().format.currency) if value isnt ''#value.toFixed('2') 
+    new Lawnchair({name: 'products'}, $.noop).get('currency', (curr)-&gt; currencySymbol = curr.currencySymbol)
+  html = "&lt;div class='currency'&gt;&lt;div class='right'&gt;#{value} #{currencySymbol}&lt;/div&gt;&lt;/div&gt;"
+  new Handlebars.SafeString(html)###</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>  Helper pour uniformiser l&#39;utilisation des formulaires.
+  Exemple: {{#form}} {{input_for &quot;firstName&quot;}} {{/form}}</p></div></div><div class="code"><div class="wrapper">Handlebars.registerHelper <span class="hljs-string">'form'</span>, <span class="hljs-function"><span class="hljs-params">(options)</span>-&gt;</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-string">"&lt;form novalidate class='form-horizontal' role='form'&gt;<span class="hljs-subst">#{options.fn(@)}</span>&lt;/form&gt;"</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>  Helper pour uniformiser l&#39;utilisation des formulaires.
+  Exemple: {{#form}} {{input_for &quot;firstName&quot;}} {{/form}}</p></div></div><div class="code"><div class="wrapper">Handlebars.registerHelper <span class="hljs-string">'display'</span>, <span class="hljs-function"><span class="hljs-params">(options)</span>-&gt;</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-string">"&lt;form novalidate class='form-horizontal' role='form'&gt;<span class="hljs-subst">#{options.fn(@)}</span>&lt;/form&gt;"</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>  Helper pour uniformiser l&#39;utilisation des formulaires.
+  Exemple: {{#button_toolbar}} {{{button_cancel}} {{button_save}} {{/button_toolbar}}</p></div></div><div class="code"><div class="wrapper">Handlebars.registerHelper <span class="hljs-string">'btn_toolbar'</span>, <span class="hljs-function"><span class="hljs-params">(options)</span>-&gt;</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-string">"&lt;div class='btn-toolbar'&gt;&lt;div class='btn-group'&gt;<span class="hljs-subst">#{options.fn(@)}</span>&lt;/div&gt;&lt;/div&gt;"</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>  Helper pour uniformiser l&#39;utilisation des panel.
+  Exemple: {{#panel}} {{{#form}} {{/form}} {{/panel}}
+  Exemple: {{#panel &quot;titlekey&quot;}} {{{#form}} {{/form}} {{/panel}}</p></div></div><div class="code"><div class="wrapper">Handlebars.registerHelper <span class="hljs-string">'panel'</span>, <span class="hljs-function"><span class="hljs-params">(title, options)</span>-&gt;</span>
+    opt = (options <span class="hljs-keyword">or</span> {}).hash <span class="hljs-keyword">or</span> {}
+    <span class="hljs-keyword">if</span> _.isObject(title)
+      options = title 
+      title = <span class="hljs-literal">undefined</span>
+    <span class="hljs-function"><span class="hljs-title">editButton</span> = -&gt;</span>
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">if</span> opt.edit <span class="hljs-keyword">then</span> Handlebars.helpers.button_edit.call(@, {<span class="hljs-attribute">hash</span>: {<span class="hljs-attribute">icon</span>: <span class="hljs-string">"pencil"</span>}}) <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+    <span class="hljs-function"><span class="hljs-title">saveButton</span> = -&gt;</span>
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">if</span> opt.save <span class="hljs-keyword">then</span> Handlebars.helpers.button_save.call(@, <span class="hljs-literal">undefined</span>, {<span class="hljs-attribute">hash</span>: {<span class="hljs-attribute">icon</span>: <span class="hljs-string">"save"</span>}}) <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+    <span class="hljs-function"><span class="hljs-title">cancelButton</span> = -&gt;</span>
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">if</span> opt.save <span class="hljs-keyword">then</span> Handlebars.helpers.button_cancel.call(@, {<span class="hljs-attribute">hash</span>: {<span class="hljs-attribute">icon</span>: <span class="hljs-string">"undo"</span>}}) <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
+    title =  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> title? <span class="hljs-keyword">then</span> <span class="hljs-string">""</span> <span class="hljs-keyword">else</span> i18n.t(title)
+    html = <span class="hljs-string">"&lt;div class='panel panel-default'&gt;
+          &lt;div class='panel-heading'&gt;<span class="hljs-subst">#{title}</span> <span class="hljs-subst">#{editButton()}</span> <span class="hljs-subst">#{saveButton()}</span> <span class="hljs-subst">#{cancelButton()}</span>&lt;/div&gt;
+          &lt;div class='panel-body'&gt;<span class="hljs-subst">#{options.fn(@)}</span>&lt;/div&gt;
+        &lt;/div&gt;"</span>
+    <span class="hljs-keyword">return</span> html</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>  Helper pour uniformiser l&#39;utilisation des formulaires.
+  Exemple: {{#page &quot;page.title&quot; panelTitle=&quot;page.panel.title&quot;}} {{input_for &quot;firstName&quot;}} {{/page}}</p></div></div><div class="code"><div class="wrapper">Handlebars.registerHelper <span class="hljs-string">'page'</span>, <span class="hljs-function"><span class="hljs-params">(title, options)</span>-&gt;</span>
+  options = options <span class="hljs-keyword">or</span> {}
+  opt = options.hash <span class="hljs-keyword">or</span> {}
+  <span class="hljs-built_in">console</span>.error(<span class="hljs-string">"noTitleInYourTemplate"</span>)<span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> _.isString(title)    
+  html = <span class="hljs-string">"
+      &lt;h1&gt;<span class="hljs-subst">#{i18n.t(title)}</span>&lt;/h1&gt;
+      &lt;div class='page-content'&gt;
+        <span class="hljs-subst">#{options.fn(@)}</span>
+      &lt;/div&gt;
+  "</span>
+  <span class="hljs-keyword">return</span> html</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>  Helper pour uniformiser l&#39;utilisation des formulaires.
+  Exemple: {{#criteria}}{{#form}} {{input_for &quot;firstName&quot;}} {{/form}}{{/criteria}}</p></div></div><div class="code"><div class="wrapper">Handlebars.registerHelper <span class="hljs-string">'criteria'</span>, <span class="hljs-function"><span class="hljs-params">(title, options)</span>-&gt;</span>
+  options = options <span class="hljs-keyword">or</span> {}
+  <span class="hljs-keyword">if</span> _.isObject(title)
+      options = title 
+      title = <span class="hljs-literal">undefined</span>
+    title =  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> title? <span class="hljs-keyword">then</span> <span class="hljs-string">""</span> <span class="hljs-keyword">else</span> i18n.t(title)
+  html = <span class="hljs-string">"
+      &lt;div class='criteria'&gt;
+        &lt;h2&gt;<span class="hljs-subst">#{title}</span>&lt;/h2&gt;
+        <span class="hljs-subst">#{options.fn(@)}</span>
+      &lt;/div&gt;
+  "</span>
+  <span class="hljs-keyword">return</span> html</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Create the default <em>opening</em> html for table result. Works as a tag.
+Works with <em>close_result_table</em> helper.</p></div></div><div class="code"><div class="wrapper">Handlebars.registerHelper <span class="hljs-string">"result"</span>, <span class="hljs-function"><span class="hljs-params">(options)</span>-&gt;</span>
+  options = options <span class="hljs-keyword">or</span> {}
+  opt = options.hash <span class="hljs-keyword">or</span> {}
+  isTable = <span class="hljs-keyword">if</span> opt.isTable? <span class="hljs-keyword">then</span> opt.isTable <span class="hljs-keyword">else</span> <span class="hljs-literal">true</span>
+  resultLabel = <span class="hljs-keyword">if</span> opt.resultLabel <span class="hljs-keyword">then</span> i18n.t(opt.resultLabel) <span class="hljs-keyword">else</span> <span class="hljs-literal">undefined</span>
+  listTagName = <span class="hljs-keyword">if</span> isTable <span class="hljs-keyword">then</span> <span class="hljs-string">"table"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">"ul"</span>
+  elementTagName = <span class="hljs-keyword">if</span> isTable <span class="hljs-keyword">then</span> <span class="hljs-string">"tr"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">"li"</span>
+  striped = <span class="hljs-keyword">if</span> opt.striped? <span class="hljs-keyword">then</span> opt.stripped <span class="hljs-keyword">else</span> <span class="hljs-literal">true</span>
+  cssClass = <span class="hljs-keyword">if</span> isTable <span class="hljs-keyword">then</span> <span class="hljs-string">"table table-condensed"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">"list-group"</span>
+  <span class="hljs-keyword">if</span> opt.cssClass? <span class="hljs-keyword">then</span> cssClass= <span class="hljs-string">"<span class="hljs-subst">#{cssClass}</span> opt.cssClass"</span>
+  <span class="hljs-keyword">if</span> striped 
+    cssClass = cssClass + <span class="hljs-string">"  table-striped"</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Generate the header actions.</p></div></div><div class="code"><div class="wrapper">  <span class="hljs-function"><span class="hljs-title">tableHeaderActions</span> = <span class="hljs-params">()</span>=&gt;</span>
+    showHeaderActions = <span class="hljs-keyword">if</span> opt.showHeaderActions? <span class="hljs-keyword">then</span> opt.showHeaderActions <span class="hljs-keyword">else</span> <span class="hljs-literal">true</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">if</span> showHeaderActions <span class="hljs-keyword">then</span> <span class="hljs-string">"<span class="hljs-subst">#{Handlebars.helpers.tableHeaderAction.call(<span class="hljs-keyword">this</span>, {hash:{resultLabel: <span class="hljs-string">''</span>, exportUrl: <span class="hljs-keyword">this</span>.exportUrl, resultLabel: resultLabel}</span>})} &lt;hr /&gt;"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Render the pagination Pagination.</p></div></div><div class="code"><div class="wrapper">  <span class="hljs-function"><span class="hljs-title">paginate</span> = <span class="hljs-params">()</span>=&gt;</span>
+    isPaginate = <span class="hljs-keyword">if</span> opt.isPaginate? <span class="hljs-keyword">then</span> opt.isPaginate <span class="hljs-keyword">else</span> <span class="hljs-literal">true</span>
+    <span class="hljs-keyword">if</span> isPaginate
+      Handlebars.helpers.paginate.call(<span class="hljs-keyword">this</span>, {<span class="hljs-attribute">hash</span>:{<span class="hljs-attribute">showResultNumber</span>:<span class="hljs-literal">false</span>}})
+    <span class="hljs-keyword">else</span> <span class="hljs-string">""</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Produce the html to render.</p></div></div><div class="code"><div class="wrapper">  html = <span class="hljs-string">" <span class="hljs-subst">#{tableHeaderActions()}</span>
+              &lt;<span class="hljs-subst">#{listTagName}</span> class='<span class="hljs-subst">#{cssClass}</span>'&gt;
+                <span class="hljs-subst">#{options.fn(@)}</span>
+              &lt;/<span class="hljs-subst">#{listTagName}</span>&gt;
+            <span class="hljs-subst">#{paginate()}</span>
+          &lt;div id='lineSelectionContainer'&gt;&lt;/div&gt;
+  "</span>
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Handlebars.SafeString(html)</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>create the default container for search results.</p></div></div><div class="code"><div class="wrapper">Handlebars.registerHelper <span class="hljs-string">"result_container"</span>, <span class="hljs-function"><span class="hljs-params">(i18n_key, options)</span>-&gt;</span>
+  options = options <span class="hljs-keyword">or</span> {}
+  opt = options.hash <span class="hljs-keyword">or</span> {} 
+  <span class="hljs-comment">#Default width</span>
+  width = opt.width <span class="hljs-keyword">or</span> <span class="hljs-number">12</span>
+  html = <span class="hljs-string">"&lt;div id='results' class='<span class="hljs-subst">#{Handlebars.helpers.col.call(<span class="hljs-keyword">this</span>, width)}</span>}'&gt;&lt;/div&gt;"</span>
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Handlebars.SafeString(html)</div></div></div></div></body></html>

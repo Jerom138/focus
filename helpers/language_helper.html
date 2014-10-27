@@ -1,0 +1,52 @@
+<!DOCTYPE html><html lang="en"><head><title>helpers/language_helper</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../"><meta name="groc-document-path" content="helpers/language_helper"><meta name="groc-project-path" content="lib/helpers/language_helper.coffee"><meta name="groc-github-url" content="https://github.com/KleeGroup/focus"><link rel="stylesheet" type="text/css" media="all" href="../assets/style.css"><script type="text/javascript" src="../assets/behavior.js"></script><body><div id="meta"><div class="file-path"><a href="https://github.com/KleeGroup/focus/blob/master/lib/helpers/language_helper.coffee">lib/helpers/language_helper.coffee</a></div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-comment">#global $, _</span>
+<span class="hljs-function"><span class="hljs-params">((NS) -&gt;</span></span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Filename: helpers/culture_helper.coffee</p></div></div><div class="code"><div class="wrapper">  <span class="hljs-string">"use strict"</span>
+  NS = NS <span class="hljs-keyword">or</span> {}
+  isInBrowser = <span class="hljs-keyword">typeof</span> <span class="hljs-built_in">module</span> <span class="hljs-keyword">is</span> <span class="hljs-string">'undefined'</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">typeof</span> <span class="hljs-built_in">window</span> <span class="hljs-keyword">isnt</span> <span class="hljs-string">'undefined'</span>
+  ArgumentNullException = <span class="hljs-keyword">if</span> isInBrowser <span class="hljs-keyword">then</span> NS.Helpers.Exceptions.ArgumentNullException <span class="hljs-keyword">else</span> <span class="hljs-built_in">require</span>(<span class="hljs-string">"./custom_exception"</span>).ArgumentNullException
+  ArgumentInvalidException= <span class="hljs-keyword">if</span> isInBrowser <span class="hljs-keyword">then</span> NS.Helpers.Exceptions.ArgumentInvalidException <span class="hljs-keyword">else</span> <span class="hljs-built_in">require</span>(<span class="hljs-string">"./custom_exception"</span>).ArgumentInvalidException
+  languagesOptions = {
+    <span class="hljs-string">'fr-FR'</span>:{},
+    <span class="hljs-string">'en-GB'</span>:{}
+  }
+  
+  <span class="hljs-comment">#Define or extend a language in the application.</span>
+  <span class="hljs-function"><span class="hljs-title">defineLanguage</span> =<span class="hljs-params">(cultureCode, languageOptions, options)</span> -&gt;</span>
+    options = options <span class="hljs-keyword">or</span> {}
+    isExtend = options.isExtend <span class="hljs-keyword">or</span> <span class="hljs-literal">false</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> cultureCode?
+      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> ArgumentNullException(<span class="hljs-string">"cultureCode"</span>, cultureCode)
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> _.isString(cultureCode)?
+      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> ArgumentInvalidException(<span class="hljs-string">"cultureCode should be a string."</span>, cultureCode)
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> languageOptions?
+      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> ArgumentNullException(<span class="hljs-string">"cultureCode"</span>, languageOptions)
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> _.isObject(languageOptions)?
+      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> ArgumentInvalidException(<span class="hljs-string">"languageOptions should be an object."</span>, languageOptions)
+    <span class="hljs-keyword">if</span>(<span class="hljs-keyword">not</span> isExtend <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> languageOptions[cultureCode]?)
+      languagesOptions[cultureCode] =  languageOptions
+    <span class="hljs-keyword">else</span>
+      _.extend(languagesOptions[cultureCode], languageOptions)
+
+  <span class="hljs-comment">#Define many languages in the application.</span>
+  <span class="hljs-function"><span class="hljs-title">defineLanguages</span> = <span class="hljs-params">(languages, options)</span>-&gt;</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> _.isArray(languages)
+      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> ArgumentInvalidException(<span class="hljs-string">"Languages should be an array"</span>, languages)
+    defineLanguage(language.culture, language.options) <span class="hljs-keyword">for</span> language <span class="hljs-keyword">in</span> languages
+  </div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Get an array with all the application languages defined.</p></div></div><div class="code"><div class="wrapper">  <span class="hljs-function"><span class="hljs-title">getCultures</span> = -&gt;</span>
+    <span class="hljs-keyword">return</span> _.keys(languagesOptions)
+  </div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Get the language information.</p></div></div><div class="code"><div class="wrapper">  <span class="hljs-function"><span class="hljs-title">getLanguage</span> = <span class="hljs-params">(cultureCode)</span>-&gt;</span>
+    <span class="hljs-keyword">if</span> languagesOptions[cultureCode]?
+      <span class="hljs-keyword">return</span> languagesOptions[cultureCode]
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">undefined</span>
+
+  mod = {
+    <span class="hljs-string">"getCultures"</span>: getCultures,
+    <span class="hljs-string">"defineLanguage"</span>: defineLanguage,
+    <span class="hljs-string">"defineLanguages"</span>: defineLanguages,
+    <span class="hljs-string">"getLanguage"</span>:getLanguage
+  }
+  <span class="hljs-keyword">if</span> isInBrowser
+    NS.Helpers = NS.Helpers <span class="hljs-keyword">or</span> {}
+    NS.Helpers.languageHelper = mod
+  <span class="hljs-keyword">else</span>
+    <span class="hljs-built_in">module</span>.<span class="hljs-built_in">exports</span> = mod
+)(<span class="hljs-keyword">if</span> <span class="hljs-keyword">typeof</span> <span class="hljs-built_in">module</span> <span class="hljs-keyword">is</span> <span class="hljs-string">'undefined'</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">typeof</span> <span class="hljs-built_in">window</span> <span class="hljs-keyword">isnt</span> <span class="hljs-string">'undefined'</span> <span class="hljs-keyword">then</span> <span class="hljs-built_in">window</span>.Fmk <span class="hljs-keyword">else</span> <span class="hljs-built_in">module</span>.<span class="hljs-built_in">exports</span>)</div></div></div></div></body></html>
