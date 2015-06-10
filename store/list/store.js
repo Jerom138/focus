@@ -45,17 +45,19 @@ class ListStore extends CoreStore {
     var previousData = this.data.toJS()[key];
     var processedData = assign({}, previousData, newData);
 
-    if(this._isSamePaginationContext(previousData, newData)){
-      var key = keys(previousData.map)[0];
-      processedData.list = previousData.list.concat(newData.list);
-    }
+    if(processedData !== undefined && processedData.pageInfos !== undefined){
+      if(this._isSamePaginationContext(previousData, newData)){
+        var key = keys(previousData.map)[0];
+        processedData.list = previousData.list.concat(newData.list);
+      }
 
-    //add calculated fields on data
-    if (processedData.pageInfos.totalRecords && processedData.pageInfos.perPage && processedData.pageInfos.perPage != 0) {
-      processedData.pageInfos.totalPages = Math.ceil(processedData.pageInfos.totalRecords / processedData.pageInfos.perPage);
-      // Check if the last page has been fetched, if yes, send an info to the console
-      if (processedData.pageInfos.totalPages === processedData.pageInfos.currentPage) {
-        console.info(`List store reached last page (page ${processedData.pageInfos.currentPage}) for a total of ${processedData.pageInfos.totalRecords} records.`);
+      //add calculated fields on data
+      if (processedData.pageInfos.totalRecords && processedData.pageInfos.perPage && processedData.pageInfos.perPage != 0) {
+        processedData.pageInfos.totalPages = Math.ceil(processedData.pageInfos.totalRecords / processedData.pageInfos.perPage);
+        // Check if the last page has been fetched, if yes, send an info to the console
+        if (processedData.pageInfos.totalPages === processedData.pageInfos.currentPage) {
+          console.info(`List store reached last page (page ${processedData.pageInfos.currentPage}) for a total of ${processedData.pageInfos.totalRecords} records.`);
+        }
       }
     }
 
