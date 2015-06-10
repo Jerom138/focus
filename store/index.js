@@ -5,5 +5,6 @@ module.exports = {
   SearchStore: require('./search'),
   ReferenceStore: require('./reference'),
   UserStore: require('./user'),
-  RequestStore: require('./request')
+  RequestStore: require('./request'),
+  ListStore: require('./list')
 };
