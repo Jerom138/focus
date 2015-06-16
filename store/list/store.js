@@ -25,8 +25,8 @@ class ListStore extends CoreStore {
     var def = {
       list: 'list',
       pageInfos: 'pageInfos'
-    }
-    this.definition = this.config.definition
+    };
+    this.definition = this.config.definition;
     for(var node in this.definition){
       if (isPlainObject(this.definition[node])){
         this.definition[node] = assign(this.definition[node], def);
@@ -39,7 +39,8 @@ class ListStore extends CoreStore {
   /**
    *
    * @param {string} key - name of the list in the store
-   * @param {object} newData -
+   * @param {object} newData - the new data
+   * @param {object} status - status of the data
    */
   update(key, newData, status){
     var previousData = this.data.toJS()[key];
@@ -47,7 +48,6 @@ class ListStore extends CoreStore {
 
     if(processedData !== undefined && processedData.pageInfos !== undefined){
       if(this._isSamePaginationContext(previousData, newData)){
-        var key = keys(previousData.map)[0];
         processedData.list = previousData.list.concat(newData.list);
       }
 
@@ -60,7 +60,6 @@ class ListStore extends CoreStore {
         }
       }
     }
-
     this[`update${capitalize(node)}`](processedData, status);
   }
 
@@ -69,7 +68,7 @@ class ListStore extends CoreStore {
    */
   _isSamePaginationContext(previousData, newData) {
     if(newData.pageInfos) {
-      return newData.pageInfos.currentPage != 1 && isEqual(keys(previousData.map), keys(newData.map));
+      return newData.pageInfos.currentPage != 1;
     }
     return false;
   }
